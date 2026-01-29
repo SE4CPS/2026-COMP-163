@@ -75,6 +75,3 @@ CROSS JOIN customers c
 WHERE o.customer_id = c.customer_id
   AND c.region = 'West'
   AND o.amount > 900;
-
--- Example output:
--- Run Time: real 0.45 user 0.44 sys 0.01
