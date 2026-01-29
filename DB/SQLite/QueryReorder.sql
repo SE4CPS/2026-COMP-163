@@ -55,13 +55,6 @@ SELECT
   (x % 1000) + 1
 FROM seq;
 
--- --------------------------------------------
--- Indexes
--- --------------------------------------------
-
-CREATE INDEX idx_customers_region ON customers(region);
-CREATE INDEX idx_orders_customer  ON orders(customer_id);
-
 ANALYZE;
 
 -- --------------------------------------------
