@@ -231,5 +231,4 @@ def delete(furniture_id):
     return redirect(url_for("index"))
 
 if __name__ == "__main__":
-    # Run: python app.py
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5001, debug=True)
