@@ -135,26 +135,29 @@ def select_reservations_join():
     try:
         cur.execute("""
             SELECT
+                r.trail_id,
+                t.trail_id,
                 r.reservation_id,
                 r.hiker_name,
                 r.hike_date,
-                t.trail_id,
                 t.name AS trail_name,
                 t.difficulty,
                 t.capacity
-            FROM Reservation r, Trail t
-            ORDER BY r.hike_date, r.reservation_id;
+            FROM Reservation r
+            INNER JOIN Trail t
+            ON r.trail_id = t.trail_id;
         """)
         rows = cur.fetchall()
         return [
             {
-                "reservation_id": r[0],
-                "hiker_name": r[1],
-                "hike_date": r[2],
-                "trail_id": r[3],
-                "trail_name": r[4],
-                "difficulty": r[5],
-                "capacity": r[6],
+                "reservation_trail_id": r[0],
+                "trail_id": r[1],
+                "reservation_id": r[2],
+                "hiker_name": r[3],
+                "hike_date": r[4],
+                "trail_name": r[5],
+                "difficulty": r[6],
+                "capacity": r[7]
             }
             for r in rows
         ]
