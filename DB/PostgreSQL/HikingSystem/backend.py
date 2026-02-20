@@ -142,7 +142,8 @@ def select_reservations_join():
                 t.name AS trail_name,
                 t.difficulty,
                 t.capacity
-            FROM Reservation r, Trail t
+            FROM Reservation r INNER JOIN Trail t
+            ON r.trail_id = t.trail_id
             ORDER BY r.hike_date, r.reservation_id;
         """)
         rows = cur.fetchall()
