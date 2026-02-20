@@ -15,11 +15,16 @@ def init_db():
 
     # Two tables for JOIN practice: Trail and Reservation
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS Trail (
+        DROP TABLE IF EXISTS Trail;
+    """)
+
+    cur.execute("""
+        CREATE TABLE Trail (
             trail_id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             difficulty TEXT NOT NULL DEFAULT 'Easy',
-            capacity INTEGER NOT NULL DEFAULT 10 CHECK (capacity >= 0)
+            capacity INTEGER NOT NULL DEFAULT 10 CHECK (capacity >= 0),
+            weather TEXT DEFAULT 'Sunny'
         );
     """)
 

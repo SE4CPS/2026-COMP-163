@@ -141,7 +141,8 @@ def select_reservations_join():
                 t.trail_id,
                 t.name AS trail_name,
                 t.difficulty,
-                t.capacity
+                t.capacity,
+                t.weather
             FROM Reservation r INNER JOIN Trail t
             ON r.trail_id = t.trail_id
             ORDER BY r.hike_date, r.reservation_id;
@@ -156,6 +157,7 @@ def select_reservations_join():
                 "trail_name": r[4],
                 "difficulty": r[5],
                 "capacity": r[6],
+                "weather": r[7],
             }
             for r in rows
         ]
