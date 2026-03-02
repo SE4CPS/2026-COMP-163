@@ -1,3 +1,4 @@
-Elizabeth Giles
-Paul Marro
-Chi Pham
+Team Members: 
+Elizabeth Giles (Frontend),
+Paul Marro (Backend),
+Chi Pham (Database)
