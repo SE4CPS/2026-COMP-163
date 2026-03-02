@@ -13,7 +13,7 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE team5_flowers (
+        CREATE TABLE IF NOT EXISTS team5_flowers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             last_watered DATE NOT NULL,
@@ -34,7 +34,6 @@ def seed_data():
                 ('Rose', '2024-02-10', 20, 5),
                 ('Tulip', '2024-02-08', 10, 7),
                 ('Lily', '2024-02-05', 3, 5);
-        ON CONFLICT (name) DO NOTHING;
     """)
     conn.commit()
     cur.close()
