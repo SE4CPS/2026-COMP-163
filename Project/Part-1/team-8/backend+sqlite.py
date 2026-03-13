@@ -47,8 +47,9 @@ def init_db():
             CREATE TABLE IF NOT EXISTS Flower (
                 flower_id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
-                color TEXT NOT NULL DEFAULT 'Mixed',
-                price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
+                last_watered DATE NOT NULL,
+                water_level INT NOT NULL,
+                min_water_required INT NOT NULL
             );
         """)
         conn.commit()
@@ -62,8 +63,9 @@ def init_db():
             CREATE TABLE IF NOT EXISTS Flower (
                 flower_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
-                color TEXT NOT NULL DEFAULT 'Mixed',
-                price REAL NOT NULL CHECK (price >= 0)
+                last_watered DATE NOT NULL,
+                water_level INT NOT NULL,
+                min_water_required INT NOT NULL
             );
         """)
         conn.commit()
@@ -76,11 +78,11 @@ def seed_data():
         conn = _pg_conn()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO Flower (name, color, price)
+            INSERT INTO Flower (name, last_watered, water_level, min_water_required)
             VALUES
-                ('Rose', 'Red', 4.99),
-                ('Tulip', 'Yellow', 3.50),
-                ('Lily', 'White', 5.25)
+                ('Rose', '2026-03-09', 20, 5),
+                ('Tulip', '2026-03-07', 10, 7),
+                ('Lily', '2026-03-04', 3, 5)
             ON CONFLICT (name) DO NOTHING;
         """)
         conn.commit()
@@ -92,11 +94,11 @@ def seed_data():
         cur = conn.cursor()
         # SQLite flavor: INSERT OR IGNORE for idempotent seed
         cur.execute("""
-            INSERT OR IGNORE INTO Flower (name, color, price)
+            INSERT OR IGNORE INTO Flower (name, last_watered, water_level, min_water_required)
             VALUES
-                ('Rose', 'Red', 4.99),
-                ('Tulip', 'Yellow', 3.50),
-                ('Lily', 'White', 5.25);
+                ('Rose', '2026-03-09', 20, 5),
+                ('Tulip', '2026-03-07', 10, 7),
+                ('Lily', '2026-03-04', 3, 5)
         """)
         conn.commit()
         cur.close()
@@ -107,7 +109,7 @@ def seed_data():
 # CRUD (plain SQL strings, no %s)
 # -----------------------------------------
 
-def insert_flower(name, color, price):
+def insert_flower(name, last_watered, water_level, min_water_required):
     ok = True
 
     if MODE in ("pg", "both"):
@@ -115,8 +117,8 @@ def insert_flower(name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                INSERT INTO Flower (name, color, price)
-                VALUES ('{name}', '{color}', {price});
+                INSERT INTO Flower (name, last_watered, water_level, min_water_required)
+                VALUES ('{name}', '{last_watered}', {water_level}, {min_water_required});
             """
             cur.execute(sql)
             conn.commit()
@@ -133,8 +135,8 @@ def insert_flower(name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                INSERT INTO Flower (name, color, price)
-                VALUES ('{name}', '{color}', {price});
+                INSERT INTO Flower (name, last_watered, water_level, min_water_required)
+                VALUES ('{name}', '{last_watered}', {water_level}, {min_water_required});
             """
             cur.execute(sql)
             conn.commit()
@@ -164,24 +166,24 @@ def select_flower(flower_id=None, source=None):
         try:
             if flower_id is None:
                 sql = """
-                    SELECT flower_id, name, color, price
-                    FROM Flower
+                    SELECT flower_id, name, last_watered, water_level, min_water_required
+                    FROM team8_flowers
                     ORDER BY flower_id;
                 """
                 cur.execute(sql)
                 rows = cur.fetchall()
-                return [{"flower_id": r[0], "name": r[1], "color": r[2], "price": r[3]} for r in rows]
+                return [{"flower_id": r[0], "name": r[1], "last_watered": r[2], "water_level": r[3], "min_water_required": r[4]} for r in rows]
             else:
                 sql = f"""
-                    SELECT flower_id, name, color, price
-                    FROM Flower
+                    SELECT flower_id, name, last_watered, water_level, min_water_required
+                    FROM team8_flowers
                     WHERE flower_id = {flower_id};
                 """
                 cur.execute(sql)
                 row = cur.fetchone()
                 if not row:
                     return None
-                return {"flower_id": row[0], "name": row[1], "color": row[2], "price": row[3]}
+                return {"flower_id": row[0], "name": row[1], "last_watered": r[2], "water_level": r[3], "min_water_required": r[4]}
         finally:
             cur.close()
             conn.close()
@@ -192,30 +194,30 @@ def select_flower(flower_id=None, source=None):
     try:
         if flower_id is None:
             sql = """
-                SELECT flower_id, name, color, price
-                FROM Flower
+                SELECT flower_id, name, last_watered, water_level, min_water_required
+                FROM team8_flowers
                 ORDER BY flower_id;
             """
             cur.execute(sql)
             rows = cur.fetchall()
-            return [{"flower_id": r[0], "name": r[1], "color": r[2], "price": r[3]} for r in rows]
+            return [{"flower_id": r[0], "name": r[1], "last_watered": r[2], "water_level": r[3], "min_water_required": r[4]} for r in rows]
         else:
             sql = f"""
-                SELECT flower_id, name, color, price
-                FROM Flower
+                SELECT flower_id, name, last_watered, water_level, min_water_required
+                FROM team8_flowers
                 WHERE flower_id = {flower_id};
             """
             cur.execute(sql)
             row = cur.fetchone()
             if not row:
                 return None
-            return {"flower_id": row[0], "name": row[1], "color": row[2], "price": row[3]}
+            return {"flower_id": row[0], "name": row[1], "last_watered": r[2], "water_level": r[3], "min_water_required": r[4]}
     finally:
         cur.close()
         conn.close()
 
 
-def update_flower(flower_id, name, color, price):
+def update_flower(flower_id, name, last_watered, water_level, min_water_required):
     ok = True
 
     if MODE in ("pg", "both"):
@@ -225,8 +227,9 @@ def update_flower(flower_id, name, color, price):
             sql = f"""
                 UPDATE Flower
                 SET name = '{name}',
-                    color = '{color}',
-                    price = {price}
+                    last_watered = '{last_watered}',
+                    water_level = {water_level},
+                    min_water_required = {min_water_required}
                 WHERE flower_id = {flower_id};
             """
             cur.execute(sql)
@@ -246,8 +249,9 @@ def update_flower(flower_id, name, color, price):
             sql = f"""
                 UPDATE Flower
                 SET name = '{name}',
-                    color = '{color}',
-                    price = {price}
+                    last_watered = '{last_watered}',
+                    water_level = {water_level},
+                    min_water_required = {min_water_required}
                 WHERE flower_id = {flower_id};
             """
             cur.execute(sql)
@@ -270,7 +274,7 @@ def delete_flower(flower_id):
         conn = _pg_conn()
         cur = conn.cursor()
         try:
-            sql = f"DELETE FROM Flower WHERE flower_id = {flower_id};"
+            sql = f"DELETE FROM team8_flowers WHERE flower_id = {flower_id};"
             cur.execute(sql)
             conn.commit()
         except Exception as e:
@@ -285,7 +289,7 @@ def delete_flower(flower_id):
         conn = _sqlite_conn()
         cur = conn.cursor()
         try:
-            sql = f"DELETE FROM Flower WHERE flower_id = {flower_id};"
+            sql = f"DELETE FROM team8_flowers WHERE flower_id = {flower_id};"
             cur.execute(sql)
             conn.commit()
         except Exception as e:

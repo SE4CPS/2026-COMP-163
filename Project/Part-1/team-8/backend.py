@@ -10,13 +10,13 @@ def _get_conn():
     return psycopg2.connect(DATABASE_URL)
 
 
-def insert_flower(name, color, price):
+def insert_flower(name, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
     try:
         sql = f"""
-            INSERT INTO Flower (name, color, price)
-            VALUES ('{name}', '{color}', {price});
+            INSERT INTO team8_flowers (name, last_watered, water_level, min_water_required)
+            VALUES ('{name}', '{last_watered}', {water_level}, {min_water_required});
         """
         cur.execute(sql)
         conn.commit()
@@ -31,13 +31,14 @@ def insert_flower(name, color, price):
 
 
 def select_flower(flower_id=None):
+    daily_water_update()
     conn = _get_conn()
     cur = conn.cursor()
     try:
         if flower_id is None:
             sql = """
-                SELECT flower_id, name, color, price
-                FROM Flower
+                SELECT flower_id, name, last_watered, water_level, min_water_required
+                FROM team8_flowers
                 ORDER BY flower_id;
             """
             cur.execute(sql)
@@ -46,41 +47,47 @@ def select_flower(flower_id=None):
                 {
                     "flower_id": r[0],
                     "name": r[1],
-                    "color": r[2],
-                    "price": r[3],
+                    "last_watered": r[2],
+                    "water_level": r[3],
+                    "min_water_required": r[4]
                 }
                 for r in rows
             ]
         else:
             sql = f"""
-                SELECT flower_id, name, color, price
-                FROM Flower
+                SELECT flower_id, name, last_watered, water_level, min_water_required
+                FROM team8_flowers
                 WHERE flower_id = {flower_id};
             """
             cur.execute(sql)
             row = cur.fetchone()
             if not row:
                 return None
-            return {
-                "flower_id": row[0],
-                "name": row[1],
-                "color": row[2],
-                "price": row[3],
-            }
+            return [
+                {
+                    "flower_id": r[0],
+                    "name": r[1],
+                    "last_watered": r[2],
+                    "water_level": r[3],
+                    "min_water_required": r[4]
+                }
+                for r in rows
+            ]
     finally:
         cur.close()
         conn.close()
 
 
-def update_flower(flower_id, name, color, price):
+def update_flower(flower_id, name, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
     try:
         sql = f"""
-            UPDATE Flower
+            UPDATE team8_flowers
             SET name = '{name}',
-                color = '{color}',
-                price = {price}
+                last_watered = '{last_watered}',
+                water_level = {water_level},
+                min_water_required = {min_water_required}
             WHERE flower_id = {flower_id};
         """
         cur.execute(sql)
@@ -100,7 +107,7 @@ def delete_flower(flower_id):
     cur = conn.cursor()
     try:
         sql = f"""
-            DELETE FROM Flower
+            DELETE FROM team8_flowers
             WHERE flower_id = {flower_id};
         """
         cur.execute(sql)
@@ -113,3 +120,33 @@ def delete_flower(flower_id):
     finally:
         cur.close()
         conn.close()
+
+def water_flower(flower_id):
+    conn = _get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE team8_flowers
+        SET water_level = water_level + 10,
+            last_watered = CURRENT_DATE
+        WHERE flower_id = %s;
+    """, (flower_id,))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def daily_water_update():
+    conn = _get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE team8_flowers
+        SET water_level = GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),
+        0)
+        WHERE CURRENT_DATE > last_watered;
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
