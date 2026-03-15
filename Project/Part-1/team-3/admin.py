@@ -13,11 +13,12 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS Flower (
-            flower_id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
-            color TEXT NOT NULL DEFAULT 'Mixed',
-            price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
+        CREATE TABLE IF NOT EXISTS team3_flowers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL UNIQUE,
+            last_watered DATE NOT NULL,
+            water_level INT NOT NULL,
+            min_water_required INT NOT NULL
         );
     """)
     conn.commit()
@@ -28,12 +29,23 @@ def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO Flower (name, color, price)
+        INSERT INTO team3_flowers (name, last_watered, water_level, min_water_required)
         VALUES
-            ('Rose', 'Red', 4.99),
-            ('Tulip', 'Yellow', 3.50),
-            ('Lily', 'White', 5.25)
+            ('Rose', '2026-03-10', 20, 5),
+            ('Tulip', '2026-03-11', 10, 10),
+            ('Lily', '2026-03-11', 15, 5)
         ON CONFLICT (name) DO NOTHING;
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def update_water_levels():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE team3_flowers
+        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
     """)
     conn.commit()
     cur.close()
