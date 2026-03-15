@@ -4,7 +4,16 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+#Automatically update water_level on refresh is last_watered == CURRENT_DATE ?
+#It will be an update with conditions?.
+
+#ADDED this incase it was needed. 
 # Database connection details
+DATABASE_URL = (
+    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
+    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
+    "neondb?sslmode=require"
+)
 
 # Get all flowers
 @app.route('/team8_flowers', methods=['GET'])
@@ -72,6 +81,7 @@ def delete_flower(id):
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})  
 
+#NEW: Added water
 @app.route("/team8_flowers/water/<int:id>", methods=["POST"])
 def water(flower_id):
     backend.water_flower(flower_id)

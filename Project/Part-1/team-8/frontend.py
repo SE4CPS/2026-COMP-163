@@ -102,6 +102,7 @@ def delete(flower_id):
     backend.delete_flower(flower_id)
     return redirect(url_for("frontend.index"))
 
+#NEW: Water button. 
 @frontend_bp.route("/water/<int:flower_id>", methods=["POST"])
 def water(flower_id):
     backend.water_flower(flower_id)
