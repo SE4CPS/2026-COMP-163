@@ -17,6 +17,27 @@ def get_db_connection():
 
 app = Flask(__name__)
 
+
+#Starting page 
+@app.route('/')
+def test_home():
+    return "Flower Watering App"
+
+#Column page for testing our column labels. #WE NEEDED TO USE `flower_id` the entire time!!!! not `id`
+@app.route('/column-name')
+def get_columns():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'team8_flowers';
+    """)
+    flowers = cur.fetchall()
+    cur.close()
+    conn.close()
+    return flowers
 #==============SQL QUERIES==============
 
 # Get all flowers
@@ -24,13 +45,13 @@ app = Flask(__name__)
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, lastwatered, water_level, min_water_required FROM team8_flowers")
+    cur.execute("SELECT flower_id, name, last_watered, water_level, min_water_required FROM team8_flowers") #FIXED: Changed `id` --> `flower_id`
     flowers = cur.fetchall()
     cur.close()
     conn.close()
     
     return jsonify([{
-        "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
+        "flower_id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
         "water_level": f[3], "needs_watering": f[3] < f[4]
     } for f in flowers])
 
@@ -91,3 +112,6 @@ def delete_flower(id):
 def water(flower_id):
     backend.water_flower(flower_id)
     return redirect(url_for("frontend.index"))
+
+if __name__ == "__main__":
+    app.run(debug=True, port=3000, host="0.0.0.0")
