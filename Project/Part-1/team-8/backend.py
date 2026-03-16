@@ -9,7 +9,7 @@ DATABASE_URL = (
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)
 
-
+#==========SQL QUERIES============
 def insert_flower(name, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
@@ -29,7 +29,7 @@ def insert_flower(name, last_watered, water_level, min_water_required):
         cur.close()
         conn.close()
 
-
+#Get all flowers
 def select_flower(flower_id=None):
     daily_water_update()
     conn = _get_conn()
@@ -77,7 +77,7 @@ def select_flower(flower_id=None):
         cur.close()
         conn.close()
 
-
+#Update a flower by ID
 def update_flower(flower_id, name, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
@@ -101,7 +101,7 @@ def update_flower(flower_id, name, last_watered, water_level, min_water_required
         cur.close()
         conn.close()
 
-
+#Delete a flower by ID
 def delete_flower(flower_id):
     conn = _get_conn()
     cur = conn.cursor()
@@ -121,6 +121,7 @@ def delete_flower(flower_id):
         cur.close()
         conn.close()
 
+#NEW: Waters a flower by ID (+) UPDATEs last_watered to CURRENT_DATE
 def water_flower(flower_id):
     conn = _get_conn()
     cur = conn.cursor()
@@ -136,6 +137,7 @@ def water_flower(flower_id):
     cur.close()
     conn.close()
 
+# Shows water loss after day(s)
 def daily_water_update():
     conn = _get_conn()
     cur = conn.cursor()

@@ -1,23 +1,23 @@
 import psycopg2
 import backend
 from flask import Flask, request, jsonify
+from flask import redirect, url_for
+#NEW: added water() function
+#NEW: added DATABASE_URL and get_db_connection()
+#NEW: import flask.redict and flask.url_for because it is used for water()
 
-app = Flask(__name__)
-
-#Automatically update water_level on refresh is last_watered == CURRENT_DATE ?
-#It will be an update with conditions?.
-
-#NEW:ADDED this incase it was needed. 
 # Database connection details
 DATABASE_URL = (
     "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
     "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
     "neondb?sslmode=require"
 )
-#NEW:ADDED connection to get_db_connection()
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
+app = Flask(__name__)
+
+#==============SQL QUERIES==============
 
 # Get all flowers
 @app.route('/team8_flowers', methods=['GET'])
@@ -34,6 +34,7 @@ def get_flowers():
         "water_level": f[3], "needs_watering": f[3] < f[4]
     } for f in flowers])
 
+#Get flowers needing water
 @app.route('/team8_flowers/needs_water', methods=['GET'])
 def get_flowers_needing_water():
     conn = get_db_connection()
@@ -85,8 +86,8 @@ def delete_flower(id):
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})  
 
-#NEW: Added water
-@app.route("/team8_flowers/water/<int:id>", methods=["POST"])
+#NEW: Water 
+@app.route("/team8_flowers/water/<int:id>", methods=["POST"])  #Should this be <int:flower_id> ?
 def water(flower_id):
     backend.water_flower(flower_id)
     return redirect(url_for("frontend.index"))
