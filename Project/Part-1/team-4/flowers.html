@@ -3,18 +3,59 @@
 <head>
     <title>Flower Watering Status</title>
 </head>
+<style>
+    table {
+        font-family: Arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+
+    input {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+</style>
+
 <body>
+    <!-- name, last_watered, water_level, min_water_required-->
     <h2>Flower Watering Status</h2>
     <table border="1">
         <tr>
             <th>Name</th>
             <th>Last Watered</th>
             <th>Water Level</th>
+            <th>Minimum water-level required</th>
             <th>Needs Watering</th>
         </tr>
         <tbody id="flower-data"></tbody>
     </table>
 
+    
+    <div class="card">
+        <h2 font-size="20px">Add Flower</h2>
+        <form onsubmit="addFlower(event)">
+          <div class="row">
+            <input id="name" name="name" required><label>Name<br></label>
+            <input id="last_watered" name="last_watered"><label>Last Watered<br></label>
+            <input id="water_level" name="water_level" type="number" step="0.01" min="0" required><label>Water Level<br></label>
+            <input id="min_water_required" name="min_water_required" type="number" step="0.01" min="0" required><label>Minimum Water level Required<br></label>
+            <div style="align-self:end;"><button type="submit">Add</button></div>
+          </div>
+        </form>
+    </div>
+   
+    
     <script>
         fetch('/flowers')
             .then(response => response.json())
@@ -25,11 +66,41 @@
                         <td>${flower.name}</td>
                         <td>${flower.last_watered}</td>
                         <td>${flower.water_level} inches</td>
+                        <td>${flower.min_water_required} inches</td>
                         <td>${flower.needs_watering ? "Yes" : "No"}</td>
+
+                        <td>
+                            <button onclick="deleteFlower(${flower.id})">Delete</button>    
+                        </td>
                     </tr>`;
                 });
                 document.getElementById("flower-data").innerHTML = rows;
             });
+        
+        function deleteFlower(id) {
+            fetch(`/flowers/${id}`, {
+                method: 'DELETE'
+            })
+            .then(() => location.reload())
+        }
+
+        function addFlower() {
+            event.preventDefault();   // stops form from navigating
+            fetch('/flowers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("name").value,
+                    last_watered: new Date().toISOString().split("T")[0],
+                    water_level: parseInt(document.getElementById("water_level").value),
+                    min_water_required: parseInt(document.getElementById("min_water_required").value)
+                })
+            })
+            .then(() => location.reload())
+        }
+
     </script>
 </body>
 </html>

@@ -1,37 +1,57 @@
 import psycopg2
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
 # Database connection details
+
+DATABASE_URL = (
+    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
+    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
+    "neondb?sslmode=require"
+)
+
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
 
 # Get all flowers
 @app.route('/flowers', methods=['GET'])
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    # cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    cur.execute("""
+        SELECT flower_id, name, last_watered, water_level, min_water_required
+        FROM team4_flowers
+        ORDER BY flower_id;
+    """)
     flowers = cur.fetchall()
     cur.close()
     conn.close()
     
     return jsonify([{
         "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-        "water_level": f[3], "needs_watering": f[3] < f[4]
+        "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
     } for f in flowers])
 
 @app.route('/flowers/needs_watering', methods=['GET'])
 def get_flowers_needing_water():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    # cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    cur.execute("""
+        SELECT flower_id, name, last_watered, water_level, min_water_required
+        FROM team4_flowers
+        WHERE water_level < min_water_required
+        ORDER BY flower_id;
+    """)
     flowers = cur.fetchall()
     cur.close()
     conn.close()
 
     return jsonify([{
         "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-        "water_level": f[3], "needs_watering": f[3] < f[4]
+        "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
     } for f in flowers])
 
 # Add a flower
@@ -40,8 +60,10 @@ def add_flower():
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", 
-                (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
+    # cur.execute("WRITE CORRECT QUERY HERE", 
+    #             (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
+    cur.execute("INSERT INTO team4_flowers (name, last_watered, water_level, min_water_required) VALUES (%s, %s, %s, %s)", 
+                (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))
     conn.commit()
     cur.close()
     conn.close()
@@ -53,8 +75,10 @@ def update_flower(id):
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", 
-                (data['last_watered'], data['water_level'], id))  # Placeholder
+    # cur.execute("WRITE CORRECT QUERY HERE", 
+    #             (data['last_watered'], data['water_level'], id))  # Placeholder
+    cur.execute("UPDATE team4_flowers SET last_watered = %s, water_level = %s WHERE flower_id = %s;", 
+                (data['last_watered'], data['water_level'], id))  
     conn.commit()
     cur.close()
     conn.close()
@@ -65,8 +89,13 @@ def update_flower(id):
 def delete_flower(id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", (id,))  # Placeholder
+    # cur.execute("WRITE CORRECT QUERY HERE", (id,))  # Placeholder
+    cur.execute("DELETE FROM team4_flowers WHERE flower_id =%s", (id,))  
     conn.commit()
     cur.close()
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})  
+
+@app.route("/")
+def home(): 
+    return send_from_directory(".", "flowers.html")
