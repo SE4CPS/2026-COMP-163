@@ -13,11 +13,15 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
+        DROP TABLE team11_flowers;
         CREATE TABLE IF NOT EXISTS team11_flowers (
-            flower_id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
-            color TEXT NOT NULL DEFAULT 'Mixed',
-            price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            color VARCHAR(100) DEFAULT 'mixed',
+            price DECIMAL, 
+            last_watered DATE NOT NULL,
+            water_level INT NOT NULL,
+            min_water_required INT NOT NULL
         );
     """)
     conn.commit()
@@ -28,12 +32,11 @@ def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO team11_flowers (name, color, price)
-        VALUES
-            ('Rose', 'Red', 4.99),
-            ('Tulip', 'Yellow', 3.50),
-            ('Lily', 'White', 5.25)
-        ON CONFLICT (name) DO NOTHING;
+        INSERT INTO team11_flowers (name, last_watered, water_level, min_water_required) 
+        VALUES 
+            ('Rose', '2024-02-10', 20, 5),
+            ('Tulip', '2024-02-08', 10, 7),
+            ('Lily', '2024-02-05', 3, 5);
     """)
     conn.commit()
     cur.close()
