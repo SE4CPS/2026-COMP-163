@@ -15,7 +15,7 @@ def insert_flower(name, color, price):
     cur = conn.cursor()
     try:
         sql = f"""
-            INSERT INTO Flower (name, color, price)
+            INSERT INTO team10_flower (name, color, price)
             VALUES ('{name}', '{color}', {price});
         """
         cur.execute(sql)
@@ -37,7 +37,7 @@ def select_flower(flower_id=None):
         if flower_id is None:
             sql = """
                 SELECT flower_id, name, color, price
-                FROM Flower
+                FROM team10_flower
                 ORDER BY flower_id;
             """
             cur.execute(sql)
@@ -54,7 +54,7 @@ def select_flower(flower_id=None):
         else:
             sql = f"""
                 SELECT flower_id, name, color, price
-                FROM Flower
+                FROM team10_flower
                 WHERE flower_id = {flower_id};
             """
             cur.execute(sql)
@@ -77,7 +77,7 @@ def update_flower(flower_id, name, color, price):
     cur = conn.cursor()
     try:
         sql = f"""
-            UPDATE Flower
+            UPDATE team10_flower
             SET name = '{name}',
                 color = '{color}',
                 price = {price}
@@ -100,7 +100,7 @@ def delete_flower(flower_id):
     cur = conn.cursor()
     try:
         sql = f"""
-            DELETE FROM Flower
+            DELETE FROM team10_flower
             WHERE flower_id = {flower_id};
         """
         cur.execute(sql)

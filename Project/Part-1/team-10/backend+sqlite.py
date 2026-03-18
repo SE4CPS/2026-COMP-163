@@ -44,7 +44,7 @@ def init_db():
         conn = _pg_conn()
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS Flower (
+            CREATE TABLE IF NOT EXISTS team10_flower (
                 flower_id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
                 color TEXT NOT NULL DEFAULT 'Mixed',
@@ -59,7 +59,7 @@ def init_db():
         conn = _sqlite_conn()
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS Flower (
+            CREATE TABLE IF NOT EXISTS team10_flower (
                 flower_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 color TEXT NOT NULL DEFAULT 'Mixed',
@@ -76,7 +76,7 @@ def seed_data():
         conn = _pg_conn()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO Flower (name, color, price)
+            INSERT INTO team10_flower (name, color, price)
             VALUES
                 ('Rose', 'Red', 4.99),
                 ('Tulip', 'Yellow', 3.50),
@@ -92,7 +92,7 @@ def seed_data():
         cur = conn.cursor()
         # SQLite flavor: INSERT OR IGNORE for idempotent seed
         cur.execute("""
-            INSERT OR IGNORE INTO Flower (name, color, price)
+            INSERT OR IGNORE INTO team10_flower (name, color, price)
             VALUES
                 ('Rose', 'Red', 4.99),
                 ('Tulip', 'Yellow', 3.50),
@@ -115,7 +115,7 @@ def insert_flower(name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                INSERT INTO Flower (name, color, price)
+                INSERT INTO team10_flower (name, color, price)
                 VALUES ('{name}', '{color}', {price});
             """
             cur.execute(sql)
@@ -133,7 +133,7 @@ def insert_flower(name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                INSERT INTO Flower (name, color, price)
+                INSERT INTO team10_flower (name, color, price)
                 VALUES ('{name}', '{color}', {price});
             """
             cur.execute(sql)
@@ -165,7 +165,7 @@ def select_flower(flower_id=None, source=None):
             if flower_id is None:
                 sql = """
                     SELECT flower_id, name, color, price
-                    FROM Flower
+                    FROM team10_flower
                     ORDER BY flower_id;
                 """
                 cur.execute(sql)
@@ -174,7 +174,7 @@ def select_flower(flower_id=None, source=None):
             else:
                 sql = f"""
                     SELECT flower_id, name, color, price
-                    FROM Flower
+                    FROM team10_flower
                     WHERE flower_id = {flower_id};
                 """
                 cur.execute(sql)
@@ -193,7 +193,7 @@ def select_flower(flower_id=None, source=None):
         if flower_id is None:
             sql = """
                 SELECT flower_id, name, color, price
-                FROM Flower
+                FROM team10_flower
                 ORDER BY flower_id;
             """
             cur.execute(sql)
@@ -202,7 +202,7 @@ def select_flower(flower_id=None, source=None):
         else:
             sql = f"""
                 SELECT flower_id, name, color, price
-                FROM Flower
+                FROM team10_flower
                 WHERE flower_id = {flower_id};
             """
             cur.execute(sql)
@@ -223,7 +223,7 @@ def update_flower(flower_id, name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                UPDATE Flower
+                UPDATE team10_flower
                 SET name = '{name}',
                     color = '{color}',
                     price = {price}
@@ -244,7 +244,7 @@ def update_flower(flower_id, name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                UPDATE Flower
+                UPDATE team10_flower
                 SET name = '{name}',
                     color = '{color}',
                     price = {price}
@@ -270,7 +270,7 @@ def delete_flower(flower_id):
         conn = _pg_conn()
         cur = conn.cursor()
         try:
-            sql = f"DELETE FROM Flower WHERE flower_id = {flower_id};"
+            sql = f"DELETE FROM team10_flower WHERE flower_id = {flower_id};"
             cur.execute(sql)
             conn.commit()
         except Exception as e:
@@ -285,7 +285,7 @@ def delete_flower(flower_id):
         conn = _sqlite_conn()
         cur = conn.cursor()
         try:
-            sql = f"DELETE FROM Flower WHERE flower_id = {flower_id};"
+            sql = f"DELETE FROM team10_flower WHERE flower_id = {flower_id};"
             cur.execute(sql)
             conn.commit()
         except Exception as e:

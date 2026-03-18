@@ -13,7 +13,7 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS Flower (
+        CREATE TABLE IF NOT EXISTS team10_flower (
             flower_id SERIAL PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
             color TEXT NOT NULL DEFAULT 'Mixed',
@@ -28,7 +28,7 @@ def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO Flower (name, color, price)
+        INSERT INTO team10_flower (name, color, price)
         VALUES
             ('Rose', 'Red', 4.99),
             ('Tulip', 'Yellow', 3.50),
