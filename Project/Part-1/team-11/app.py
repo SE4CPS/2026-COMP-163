@@ -18,7 +18,7 @@ def get_db_connection():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM team11_flowers;")  # Placeholder for SELECT query
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -32,7 +32,7 @@ def get_flowers():
 def get_flowers_needing_water():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM team11_flowers WHERE water_level < min_water_required")  # Placeholder for SELECT query
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -48,7 +48,10 @@ def add_flower():
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", 
+    cur.execute("""
+                INSERT INTO team11_flowers (name, last_watered, water_level, min_water_required)
+                VALUES (%s, %s, %s, %s);
+                """, 
                 (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
     conn.commit()
     cur.close()
@@ -61,7 +64,12 @@ def update_flower(id):
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", 
+    cur.execute("""
+                UPDATE team11_flowers
+                SET last_watered = %s,
+                water_level = %s
+                WHERE id = %s;
+                """, 
                 (data['last_watered'], data['water_level'], id))  # Placeholder
     conn.commit()
     cur.close()
@@ -73,7 +81,7 @@ def update_flower(id):
 def delete_flower(id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", (id,))  # Placeholder
+    cur.execute("DELETE FROM team11_flowers WHERE id = %s;", (id,))  # Placeholder
     conn.commit()
     cur.close()
     conn.close()
