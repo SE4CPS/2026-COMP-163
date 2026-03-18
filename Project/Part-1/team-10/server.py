@@ -5,6 +5,7 @@ from frontend import frontend_bp
 def create_app():
     app = Flask(__name__)
 
+    admin.del_db()
     admin.init_db()
     admin.seed_data()
 
