@@ -28,9 +28,9 @@ PAGE = """
     <form method="POST" action="{{ url_for('frontend.add') }}">
       <div class="row">
         <label>Name<br><input name="name" required></label>
-        <label>Last Watered<br><input name="last_watered" placeholder="Mixed"></label>
+        <label>Last Watered<br><input name="last_watered" placeholder="YYYY-MM-DD"></label>
         <label>Water Level<br><input name="water_level" type="number" step="0.01" min="0" required></label>
-        <label>Required Level<br><input name="water_level" type="number" step="0.01" min="0" required></label>
+        <label>Minimum Required Level<br><input name="min_water_required" type="number" step="0.01" min="0" required></label>
         <div style="align-self:end;"><button type="submit">Add</button></div>
       </div>
     </form>
@@ -42,9 +42,9 @@ PAGE = """
     <form method="POST" action="{{ url_for('frontend.edit', id=edit_item.id) }}">
       <div class="row">
         <label>Name<br><input name="name" value="{{ edit_item.name }}" required></label>
-        <label>Last Watered<br><input name="last_watered" placeholder="Mixed"></label>
+        <label>Last Watered<br><input name="last_watered" placeholder="YYYY-MM-DD"></label>
         <label>Water Level<br><input name="water_level" type="number" step="0.01" min="0" required></label>
-        <label>Required Level<br><input name="water_level" type="number" step="0.01" min="0" required></label>
+        <label>Minimum Required Level<br><input name="min_water_required" type="number" step="0.01" min="0" required></label>
         <div style="align-self:end;">
           <button type="submit">Save</button>
           <a href="{{ url_for('frontend.index') }}" style="margin-left:10px;">Cancel</a>
@@ -96,17 +96,19 @@ def index():
 @frontend_bp.route("/add", methods=["POST"])
 def add():
     name = request.form.get("name", "").strip()
-    color = (request.form.get("color", "").strip() or "Mixed")
-    price = request.form.get("price", "").strip()
-    backend.insert_flower(name, color, price)
+    last_watered = request.form.get("last_watered", "").strip()
+    water_level = request.form.get("water_level", "").strip()
+    min_water_required = request.form.get("min_water_required", "").strip()
+    backend.insert_flower(name, last_watered, water_level, min_water_required)
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/edit/<int:id>", methods=["POST"])
 def edit(id):
     name = request.form.get("name", "").strip()
-    color = request.form.get("color", "").strip()
-    price = request.form.get("price", "").strip()
-    backend.update_flower(id, name, color, price)
+    last_watered = request.form.get("last_watered", "").strip()
+    water_level = request.form.get("water_level", "").strip()
+    min_water_required = request.form.get("min_water_required", "").strip()
+    backend.update_flower(id, name, last_watered, water_level, min_water_required)
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/delete/<int:id>", methods=["POST"])

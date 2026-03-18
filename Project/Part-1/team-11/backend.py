@@ -125,7 +125,8 @@ def water_flower(id):
     try:
         sql = f"""
             UPDATE team11_flowers
-            SET water_level = min_water_required
+            SET water_level = min_water_required,
+                last_watered = CURRENT_DATE
             WHERE id = {id};
         """
         cur.execute(sql)
