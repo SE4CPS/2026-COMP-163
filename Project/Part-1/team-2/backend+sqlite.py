@@ -215,7 +215,7 @@ def select_flower(flower_id=None, source=None):
         conn.close()
 
 
-def update_flower(flower_id, name, color, price):
+def update_flower(flower_id, name, color, price, last_watered, water_level, min_water_required):
     ok = True
 
     if MODE in ("pg", "both"):
@@ -223,11 +223,12 @@ def update_flower(flower_id, name, color, price):
         cur = conn.cursor()
         try:
             sql = f"""
-                UPDATE Flower
+                UPDATE team2_flowers
                 SET name = '{name}',
-                    color = '{color}',
-                    price = {price}
-                WHERE flower_id = {flower_id};
+                    last_watered = '{last_watered}',
+                    water_level = {water_level},
+                    min_water_required = {min_water_required}
+                WHERE id = {flower_id};
             """
             cur.execute(sql)
             conn.commit()

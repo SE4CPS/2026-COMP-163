@@ -16,6 +16,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS team2_flowers (
   id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    color VARCHAR(50) NOT NULL,
+    price NUMERIC(10, 2) NOT NULL,
     last_watered DATE NOT NULL,
     water_level INT NOT NULL,
     min_water_required INT NOT NULL
@@ -29,11 +31,11 @@ def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO teamX_flowers (name, last_watered, water_level, min_water_required) 
+        INSERT INTO team2_flowers (name, color, price, last_watered, water_level, min_water_required) 
 VALUES 
-('Rose', '2024-02-10', 20, 5),
-('Tulip', '2024-02-08', 10, 7),
-('Lily', '2024-02-05', 3, 5);
+('Rose', 'Red', 4.99, '2024-02-10', 20, 5),
+('Tulip', 'Yellow', 3.50, '2024-02-08', 10, 7),
+('Lily', 'White', 5.25, '2024-02-05', 3, 5);
     """)
     conn.commit()
     cur.close()
