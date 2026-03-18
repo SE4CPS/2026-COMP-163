@@ -78,3 +78,6 @@ def delete_flower(id):
     cur.close()
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})
+
+def get_app():
+    return app
