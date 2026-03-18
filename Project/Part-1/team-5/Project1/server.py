@@ -1,17 +1,17 @@
-from flask import Flask
+# takes html file from directory
+from flask import send_from_directory
 import admin
-from frontend import frontend_bp
+# from frontend import frontend_bp
+from app import app as app_API
 
-def create_app():
-    app = Flask(__name__)
+app = app_API
 
-    admin.init_db()
-    admin.seed_data()
+admin.init_db()
+admin.seed_data()
 
-    app.register_blueprint(frontend_bp)
-    return app
-
-app = create_app()
+@app.route('/')
+def flowers_app():
+    return send_from_directory('.', 'flowers.html')
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5001, debug=True)
