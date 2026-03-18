@@ -15,13 +15,18 @@ DATABASE_URL = (
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='template')
 app.json.sort_keys = False #Done so JSONs of SQL Queries are in original order (not auto ordered alphanumerically)
 
+# #Starting page 
+# @app.route('/')
+# def test_home():
+#     return "Flower Watering App"
+from flask import render_template
 #Starting page 
 @app.route('/')
 def test_home():
-    return "Flower Watering App"
+    return render_template('flower.html')
 
 #Column page for testing our column labels. #WE NEEDED TO USE `flower_id` the entire time!!!! not `id`
 @app.route('/column-name')
@@ -86,6 +91,7 @@ def add_flower():
     return jsonify({"message": "Flower added successfully!"})
 
 # Update a flower by ID -- NOT WORKING-------------
+#I think this should also be part of the frontend buttons or inputs? Let someone edit a flower based on a flower_id ???
 @app.route('/team8_flowers/update/<int:id>', methods=['PUT'])
 def update_flower(id):
     data = request.json

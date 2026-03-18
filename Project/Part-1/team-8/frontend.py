@@ -4,6 +4,11 @@ import app
 
 frontend_bp = Blueprint("frontend", __name__)
 
+#(NOTES FOR THE HTML CODE::)
+#Since there is water/delete, perhaps a new "update" row? We can possibly copy the "Add Flower" logic, add a new text input 
+#for `flower_id` that will allow for UPDATEing through SQL/DBMS from app.py ???
+
+#This will be removed and we will instead use flower.html
 PAGE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -25,6 +30,21 @@ PAGE = """
         <label>Minimum water required</label>
         <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
         <button type="submit">Add Flower</button>
+      </form>
+
+      <h3>Update Flower</h3>
+      <form method="post" action="/edit/{{flower_id}}">
+        <label>Flower ID</label>
+        <input flower_id="flower_id" placeholder="e.g., 3" required /> <br>
+        <label>Flower name</label>
+        <input name="name" placeholder="e.g., Azalea" required /> <br>
+        <label>Last watered</label>
+        <input name="last_watered" placeholder = "e.g., 2026-03-13" required/> <br>
+        <label>Water level</label>
+        <input name="water_level" placeholder = "e.g., 10" required/> <br>
+        <label>Minimum water required</label>
+        <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
+        <button type="submit">Edit Flower</button>
       </form>
 </div>
 
@@ -71,7 +91,7 @@ PAGE = """
 </html>
 """
 
-
+#Is essentially the home page. Any `return redirect(url_for("frontend.index"))` statement redirects back to this "home page." 
 @frontend_bp.route("/")
 def index():
     edit_id = request.args.get("edit", type=int)
