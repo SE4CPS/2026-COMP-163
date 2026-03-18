@@ -38,4 +38,3 @@ def seed_data():
     conn.commit()
     cur.close()
     conn.close()
-    

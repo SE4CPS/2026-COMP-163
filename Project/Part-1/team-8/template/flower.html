@@ -1,0 +1,89 @@
+<!-- 
+ Needs flower text input logic
+Needs update text input logic 
+Needs water button
+Needs delete button 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flower Watering Status</title>
+</head>
+<body>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul style="color: green;">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+    <h2>Flower Watering Status</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Last Watered</th>
+            <th>Water Level</th>
+            <th>Needs Watering</th>
+            <th>Delete</th>
+            <th>Water</th>
+            <th>Update (Name, Date, Water level, Minimum water required)</th>
+        </tr>
+        <tbody id="flower-data"></tbody>
+    </table>
+<!-- The fetch(...) function sends to the app.py routes as data=request.json -->
+<!-- ?Change '/flowers' -> '/team8_flowers' to line up with app.py's `get_flowers()`? -->
+    <h3>Add Flower</h3>
+      <form method="post" action="/team8_flowers/add">
+        <label>Flower name</label>
+        <input name="name" placeholder="e.g., Azalea" required /> <br>
+        <label>Last watered</label>
+        <input name="last_watered" placeholder = "e.g., 2026-03-13" required/> <br>
+        <label>Water level</label>
+        <input name="water_level" placeholder = "e.g., 10" required/> <br>
+        <label>Minimum water required</label>
+        <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
+        <button type="submit">Add Flower</button>
+      </form>>
+
+    <script>
+        fetch('/team8_flowers')
+            .then(response => response.json())
+            .then(data => {
+                let rows = "";
+                data.forEach(flower => {
+                    rows += `<tr>
+                        <td>${flower.name}</td>
+                        <td>${flower.last_watered}</td>
+                        <td>${flower.water_level} inches</td>
+                        <td>${flower.needs_watering ? "Yes" : "No"}</td>
+                        <td>
+                            <form style="display:inline;" method="post" action="/team8_flowers/delete/${flower.flower_id}">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form style="display:inline;" method="post" action="/team8_flowers/water/${flower.flower_id}">
+                                <button type="submit">Water</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.flower_id}">                                <input type="hidden" name="id" value="${flower.flower_id}">
+                                <input type="hidden" name="id" value="${flower.flower_id}">
+                                <input name="name" value="${flower.name}">
+                                <input name="last_watered" value="${flower.last_watered}">
+                                <input name="water_level" value="${flower.water_level}">
+                                <input name="min_water_required" value="${flower.min_water_required}">
+                                <button type="submit">Update</button>
+                            </form>
+                        </td>
+                    </tr>`;           
+                });
+                document.getElementById("flower-data").innerHTML = rows;
+            });
+            
+    </script>
+</body>
+</html>
