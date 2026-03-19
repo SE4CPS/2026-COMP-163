@@ -1,7 +1,12 @@
 import psycopg2
 from flask import Flask, request, jsonify, render_template
+import os
 
 app = Flask(__name__)
+
+print("APP FILE:", __file__)
+print("CURRENT DIR:", os.getcwd())
+print("TEMPLATES EXISTS:", os.path.exists("templates/flowers.html"))
 
 # Database connection details
 DATABASE_URL = (
@@ -18,11 +23,25 @@ def home():
     return render_template('flowers.html')
 
 # Get all flowers
+# Get all flowers
 @app.route('/flowers', methods=['GET'])
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM team1_flowers")
+
+    cur.execute("""
+        SELECT 
+            id,
+            name,
+            last_watered,
+            GREATEST(
+                water_level - (CURRENT_DATE - last_watered) * 5,
+                0
+            ) AS water_level,
+            min_water_required
+        FROM team1_flowers
+    """)
+
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -94,12 +113,14 @@ def water_flower(id):
 
     cur.execute("""
         UPDATE team1_flowers
-        SET water_level = water_level + 5
+        SET water_level = water_level + 5,
+            last_watered = CURRENT_DATE
         WHERE id = %s
     """, (id,))
     conn.commit()
     cur.close()
     conn.close()
+
     return jsonify({"message": "Flower watered successfully!"})
 
 # Delete a flower by ID

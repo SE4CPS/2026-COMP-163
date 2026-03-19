@@ -2,34 +2,118 @@
 <html lang="en">
 <head>
     <title>Flower Watering Status</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+            background-color: white;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .water-btn {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .water-btn:hover {
+            background-color: blue;
+        }
+
+        .needs-water {
+            color: red;
+            font-weight: bold;
+        }
+
+        .good-water {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
     <h2>Flower Watering Status</h2>
-    <table border="1">
+
+    <table>
         <tr>
             <th>Name</th>
             <th>Last Watered</th>
             <th>Water Level</th>
             <th>Needs Watering</th>
+            <th>Action</th>
         </tr>
         <tbody id="flower-data"></tbody>
     </table>
 
     <script>
-        fetch('/flowers')
-            .then(response => response.json())
-            .then(data => {
-                let rows = "";
-                data.forEach(flower => {
-                    rows += `<tr>
-                        <td>${flower.name}</td>
-                        <td>${flower.last_watered}</td>
-                        <td>${flower.water_level} inches</td>
-                        <td>${flower.needs_watering ? "Yes" : "No"}</td>
-                    </tr>`;
+        function loadFlowers() {
+            fetch('/flowers')
+                .then(response => response.json())
+                .then(data => {
+                    data.sort((a, b) => b.water_level - a.water_level);
+
+                    let rows = "";
+                    data.forEach(flower => {
+                        rows += `<tr>
+                            <td>${flower.name}</td>
+                            <td>${flower.last_watered}</td>
+                            <td>${flower.water_level} inches</td>
+                            <td class="${flower.needs_watering ? 'needs-water' : 'good-water'}">
+                                ${flower.needs_watering ? "Yes" : "No"}
+                            </td>
+                            <td>
+                                <button class="water-btn" onclick="waterFlower(${flower.id})">
+                                    Water
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    document.getElementById("flower-data").innerHTML = rows;
                 });
-                document.getElementById("flower-data").innerHTML = rows;
+        }
+
+        function waterFlower(id) {
+            fetch(`/flowers/${id}/water`, {
+                method: 'PUT'
+            })
+            .then(response => response.json())
+            .then(() => {
+                loadFlowers();
             });
+        }
+
+        loadFlowers();
     </script>
 </body>
 </html>
