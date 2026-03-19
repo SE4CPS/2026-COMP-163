@@ -86,6 +86,22 @@ def update_flower(id):
     conn.close()
     return jsonify({"message": "Flower updated successfully!"})
 
+# Water a flower
+@app.route('/flowers/<int:id>/water', methods=['PUT'])
+def water_flower(id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE team1_flowers
+        SET water_level = water_level + 5
+        WHERE id = %s
+    """, (id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Flower watered successfully!"})
+
 # Delete a flower by ID
 @app.route('/flowers/<int:id>', methods=['DELETE'])
 def delete_flower(id):
