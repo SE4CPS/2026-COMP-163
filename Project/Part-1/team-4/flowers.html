@@ -69,6 +69,7 @@
 
                         <td>
                             <button onclick="deleteFlower(${flower.id})">Delete</button>    
+                            <button onclick="waterFlower(${flower.id})">Water</button> 
                         </td>
                     </tr>`;
                 });
@@ -78,6 +79,13 @@
         function deleteFlower(id) {
             fetch(`/flowers/${id}`, {
                 method: 'DELETE'
+            })
+            .then(() => location.reload())
+        }
+
+        function waterFlower(id) {
+            fetch(`/flowers/${id}/water`, {
+                method: 'PUT'
             })
             .then(() => location.reload())
         }
