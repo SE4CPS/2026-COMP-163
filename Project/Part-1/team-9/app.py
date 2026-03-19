@@ -1,5 +1,5 @@
 import psycopg2
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
 
@@ -18,7 +18,7 @@ def get_db_connection():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM team9_flowers;")
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -32,7 +32,11 @@ def get_flowers():
 def get_flowers_needing_water():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE")  # Placeholder for SELECT query
+    cur.execute("""
+        SELECT *
+        FROM team9_flowers
+        WHERE water_level < min_water_required;
+    """)
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -48,8 +52,10 @@ def add_flower():
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", 
-                (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
+    cur.execute("""
+        INSERT INTO team9_flowers (name, last_watered, water_level, min_water_required)
+        VALUES (%s, %s, %s, %s);
+    """, (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))
     conn.commit()
     cur.close()
     conn.close()
@@ -61,8 +67,12 @@ def update_flower(id):
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", 
-                (data['last_watered'], data['water_level'], id))  # Placeholder
+    cur.execute("""
+        UPDATE team9_flowers
+        SET last_watered = %s,
+            water_level = %s
+        WHERE id = %s;
+    """, (data['last_watered'], data['water_level'], id))
     conn.commit()
     cur.close()
     conn.close()
@@ -73,8 +83,15 @@ def update_flower(id):
 def delete_flower(id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("WRITE CORRECT QUERY HERE", (id,))  # Placeholder
+    cur.execute("""
+        DELETE FROM team9_flowers
+        WHERE id = %s;
+    """, (id,))
     conn.commit()
     cur.close()
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})  
+
+@app.route('/')
+def home():
+    return send_file('flowers.html')
