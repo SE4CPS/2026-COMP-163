@@ -19,7 +19,7 @@ def init_db():
         CREATE TABLE team4_flowers (
             flower_id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
-            last_watered DATE NOT NULL,
+            last_watered TIMESTAMP NOT NULL,
             water_level INT NOT NULL,
             min_water_required INT NOT NULL
         );
