@@ -15,9 +15,9 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team7_flowers (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
+            name VARCHAR(100) NOT NULL DEFAULT 'Unknown',
             last_watered DATE NOT NULL,
-            water_level INT NOT NULL,
+            water_level INT NOT NULL CHECK (water_level >= 0),
             min_water_required INT NOT NULL
         );
     """)
