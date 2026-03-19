@@ -65,7 +65,18 @@ PAGE = """
       <tr>
         <td>{{ r.name }}</td>
         <td>{{ r.last_watered }}</td>
-        <td>{{ r.water_level }} inches</td>
+
+        <td style="
+          background-color:
+          {% if r.water_level < r.min_water_required %}
+              lightcoral
+          {% elif r.water_level <= r.min_water_required + 3 %}
+              khaki
+          {% else %}
+              lightgreen
+          {% endif %}; 
+        ">
+          {{ r.water_level }} inches</td>
         <td>{{ r.min_water_required }} inches</td>
         <td>
           <a href="{{ url_for('frontend.index', edit=r.id) }}">Edit</a>
