@@ -74,7 +74,7 @@ def select_flower(flower_id=None):
         conn.close()
 
 
-def update_flower(flower_id, name, color, price):
+def update_flower(flower_id, name, color, price, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
     try:
@@ -82,7 +82,10 @@ def update_flower(flower_id, name, color, price):
             UPDATE Flower
             SET name = '{name}',
                 color = '{color}',
-                price = {price}
+                price = {price},
+                last_watered = '{last_watered}',
+                water_level = {water_level},
+                min_water_required = {min_water_required}
             WHERE flower_id = {flower_id};
         """
         cur.execute(sql)
@@ -164,17 +167,17 @@ def get_flowers_api(needs_only: bool = False):
         conn.close()
 
 
-def add_flower_api(name, last_watered, water_level, min_water_required):
+def add_flower_api(name, color, price, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
     try:
         cur.execute(
             f"""
-            INSERT INTO {TEAM_TABLE} (name, last_watered, water_level, min_water_required)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO {TEAM_TABLE} (name, color, price, last_watered, water_level, min_water_required)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id;
             """,
-            (name, last_watered, water_level, min_water_required),
+            (name, color, price, last_watered, water_level, min_water_required),
         )
         new_id = cur.fetchone()[0]
         conn.commit()
@@ -229,13 +232,37 @@ def delete_flower_api(id):
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        cur.execute(f"DELETE FROM {TEAM_TABLE} WHERE id = %s;", (id,))
+        cur.execute(f"DELETE FROM {TEAM_TABLE} WHERE id = %s;", (id,),) #added comma to make it a tuple
         conn.commit()
         return cur.rowcount > 0
     except Exception as e:
         conn.rollback()
         print("Delete error:", e)
         return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+def daily_watering_check():
+    conn = _get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            f"""
+            UPDATE {TEAM_TABLE}
+            SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
+
+            
+            """
+           # WHERE water_level < min_water_required;
+        )
+        conn.commit()
+        return cur.rowcount
+    except Exception as e:
+        conn.rollback()
+        print("Daily check error:", e)
+        return 0
     finally:
         cur.close()
         conn.close()
