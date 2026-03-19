@@ -57,17 +57,16 @@ PAGE = """
   <table>
     <thead>
       <tr>
-        <th>ID</th><th>Name</th><th>Last Watered</th><th>Water Level</th><th>Required Level</th><th>Actions</th>
+        <th>Name</th><th>Last Watered</th><th>Water Level</th><th>Minimum Required Level</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for r in rows %}
       <tr>
-        <td>{{ r.id }}</td>
         <td>{{ r.name }}</td>
         <td>{{ r.last_watered }}</td>
-        <td>{{ r.water_level }}</td>
-        <td>{{ r.min_water_required }}</td>
+        <td>{{ r.water_level }} inches</td>
+        <td>{{ r.min_water_required }} inches</td>
         <td>
           <a href="{{ url_for('frontend.index', edit=r.id) }}">Edit</a>
           &nbsp;|&nbsp;
