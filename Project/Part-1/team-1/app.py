@@ -81,13 +81,26 @@ def add_flower():
     data = request.json
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # check how many flowers already exist
+    cur.execute("SELECT COUNT(*) FROM team1_flowers")
+    count = cur.fetchone()[0]
+
+    # first flower gets 3, others get 8
+    if count == 0:
+        water_level = 3
+    else:
+        water_level = 8
+
     cur.execute("""
         INSERT INTO team1_flowers (name, last_watered, water_level, min_water_required)
-        VALUES (%s, %s, %s, %s)
-    """, (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))
+        VALUES (%s, CURRENT_DATE, %s, %s)
+    """, (data['name'], water_level, data['min_water_required']))
+
     conn.commit()
     cur.close()
     conn.close()
+
     return jsonify({"message": "Flower added successfully!"})
 
 # Update a flower by ID
