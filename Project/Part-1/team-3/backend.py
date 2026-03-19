@@ -10,16 +10,16 @@ DATABASE_URL = (
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)
 
-def insert_flower(name, water_level=20, min_water_required=5):
-    """Insert a new flower with default water level and minimum required"""
+def insert_flower(name, color='Mixed', price=0.00, water_level=20, min_water_required=5):
+    """Insert a new flower with default values"""
     conn = _get_conn()
     cur = conn.cursor()
     try:
         sql = """
-            INSERT INTO team3_flowers (name, last_watered, water_level, min_water_required)
-            VALUES (%s, %s, %s, %s);
+            INSERT INTO team3_flowers (name, color, price, last_watered, water_level, min_water_required)
+            VALUES (%s, %s, %s, %s, %s, %s);
         """
-        cur.execute(sql, (name, date.today(), water_level, min_water_required))
+        cur.execute(sql, (name, color, price, date.today(), water_level, min_water_required))
         conn.commit()
         return True
     except Exception as e:
@@ -37,9 +37,7 @@ def select_flower(id=None):
     try:
         if id is None:
             sql = """
-                UPDATE team3_flowers
-                SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
-                SELECT id, name, last_watered, water_level, min_water_required
+                SELECT id, name, color, price, last_watered, water_level, min_water_required
                 FROM team3_flowers
                 ORDER BY id;
             """
@@ -49,15 +47,17 @@ def select_flower(id=None):
                 {
                     "id": r[0],
                     "name": r[1],
-                    "last_watered": r[2],
-                    "water_level": r[3],
-                    "min_water_required": r[4],
+                    "color": r[2],
+                    "price": float(r[3]),
+                    "last_watered": r[4],
+                    "water_level": r[5],
+                    "min_water_required": r[6],
                 }
                 for r in rows
             ]
         else:
             sql = """
-                SELECT id, name, last_watered, water_level, min_water_required
+                SELECT id, name, color, price, last_watered, water_level, min_water_required
                 FROM team3_flowers
                 WHERE id = %s;
             """
@@ -68,15 +68,17 @@ def select_flower(id=None):
             return {
                 "id": row[0],
                 "name": row[1],
-                "last_watered": row[2],
-                "water_level": row[3],
-                "min_water_required": row[4],
+                "color": row[2],
+                "price": float(row[3]),
+                "last_watered": row[4],
+                "water_level": row[5],
+                "min_water_required": row[6],
             }
     finally:
         cur.close()
         conn.close()
 
-def update_flower(id, name, water_level=None, min_water_required=None):
+def update_flower(id, name, color=None, price=None, water_level=None, min_water_required=None):
     """Update flower details"""
     conn = _get_conn()
     cur = conn.cursor()
@@ -84,11 +86,13 @@ def update_flower(id, name, water_level=None, min_water_required=None):
         sql = """
             UPDATE team3_flowers
             SET name = %s,
+                color = %s,
+                price = %s,
                 water_level = %s,
                 min_water_required = %s
             WHERE id = %s;
         """
-        cur.execute(sql, (name, water_level, min_water_required, id))
+        cur.execute(sql, (name, color, price, water_level, min_water_required, id))
         conn.commit()
         return True
     except Exception as e:
@@ -127,7 +131,7 @@ def get_flowers_needing_water():
     cur = conn.cursor()
     try:
         sql = """
-            SELECT id, name, last_watered, water_level, min_water_required
+            SELECT id, name, color, price, last_watered, water_level, min_water_required
             FROM team3_flowers
             WHERE water_level < min_water_required
             ORDER BY water_level ASC;
@@ -138,9 +142,11 @@ def get_flowers_needing_water():
             {
                 "id": r[0],
                 "name": r[1],
-                "last_watered": r[2],
-                "water_level": r[3],
-                "min_water_required": r[4],
+                "color": r[2],
+                "price": float(r[3]),
+                "last_watered": r[4],
+                "water_level": r[5],
+                "min_water_required": r[6],
             }
             for r in rows
         ]

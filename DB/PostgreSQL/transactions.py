@@ -28,7 +28,7 @@ def run():
     conn.commit()
 
     # seed
-    cur.execute("INSERT INTO courses VALUES ('COMP163', 2) ON CONFLICT DO NOTHING;")
+    cur.execute("INSERT INTO courses VALUES ('COMP163', 10) ON CONFLICT DO NOTHING;")
     conn.commit()
 
     try:
