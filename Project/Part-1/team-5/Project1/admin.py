@@ -31,8 +31,8 @@ def seed_data():
     cur.execute("""
         INSERT INTO team5_flowers (id, name, last_watered, water_level, min_water_required) 
             VALUES 
-                (1, 'Rose', '2024-02-10', 20, 5) ON CONFLICT (id) DO NOTHING, 
-                (2, 'Tulip', '2024-02-08', 10, 7) ON CONFLICT (id) DO NOTHING,
+                (1, 'Rose', '2024-02-10', 20, 5), 
+                (2, 'Tulip', '2024-02-08', 10, 7),
                 (3, 'Lily', '2024-02-05', 3, 5) ON CONFLICT (id) DO NOTHING;
     """)
     conn.commit()
