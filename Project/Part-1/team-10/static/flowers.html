@@ -10,6 +10,7 @@
             <th>Name</th>
             <th>Last Watered</th>
             <th>Water Level</th>
+            <th>Current Water Level</th>
             <th>Needs Watering</th>
         </tr>
         <tbody id="flower-data"></tbody>
@@ -25,6 +26,7 @@
                         <td>${flower.name}</td>
                         <td>${flower.last_watered}</td>
                         <td>${flower.water_level} inches</td>
+                        <td>${flower.current_water_level} inches</td>
                         <td>${flower.needs_watering ? "Yes" : "No"}</td>
                     </tr>`;
                 });

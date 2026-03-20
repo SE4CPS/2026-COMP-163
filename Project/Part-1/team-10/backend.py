@@ -44,14 +44,14 @@ def select_flower(id=None):
                 "water_level": r[3],
                 "min_water_required": r[4],
                 "current_water_level": r[5],
-                "needs_watering": r[3] < r[4]
+                "needs_watering": r[5] < r[4]
             } for r in rows]
         else:
             cur.execute("SELECT id, name, last_watered, water_level, min_water_required, current_water_level FROM v_team10_flowers WHERE id = %s;", (id,))
             row = cur.fetchone()
             if not row:
                 return None
-            return {"id": row[0], "name": row[1], "last_watered": row[2].strftime("%Y-%m-%d"), "water_level": row[3], "min_water_required": row[4], "current_water_level": row[5], "needs_watering": row[3] < row[4]}
+            return {"id": row[0], "name": row[1], "last_watered": row[2].strftime("%Y-%m-%d"), "water_level": row[3], "min_water_required": row[4], "current_water_level": row[5], "needs_watering": row[5] < row[4]}
     finally:
         cur.close()
         conn.close()
