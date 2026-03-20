@@ -13,7 +13,6 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        DROP TABLE IF EXISTS team5_flowers;
         CREATE TABLE IF NOT EXISTS team5_flowers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
