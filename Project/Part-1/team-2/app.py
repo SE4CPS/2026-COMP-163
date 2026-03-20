@@ -70,6 +70,10 @@ def delete_flower(id):
 
     return jsonify({"message": "Flower deleted successfully!"})
 
+@app.route("/flowers/daily_check", methods=["POST"])
+def daily_check():
+    updated = backend.daily_watering_check()
+    return jsonify({"message": f"Water levels updated for {updated} flowers."})
 
 if __name__ == "__main__":
     # Run on 5001 to match the assignment’s typical setup.

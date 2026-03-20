@@ -3,6 +3,7 @@ import admin
 from frontend import frontend_bp
 import backend
 
+
 def create_app():
     app = Flask(__name__)
 
@@ -12,8 +13,25 @@ def create_app():
     app.register_blueprint(frontend_bp)
     return app
 
+
 app = create_app()
 
+
+# --- Serves flowers.html watering status page ---
+@app.route("/flowers-status")
+def flowers_status():
+    with open("flowers.html", "r") as f:
+        return f.read()
+
+
+# --- Daily watering algorithm ---
+@app.route("/flowers/daily_check", methods=["POST"])
+def daily_check():
+    updated = backend.daily_watering_check()
+    return jsonify({"message": f"Water levels updated for {updated} flowers."})
+
+
+# --- API routes ---
 @app.route("/flowers", methods=["GET"])
 def get_flowers():
     flowers = backend.get_flowers_api(needs_only=False)
@@ -36,6 +54,8 @@ def add_flower():
 
     new_id = backend.add_flower_api(
         name=data["name"],
+        color=data.get("color", "Mixed"),
+        price=data.get("price", 0.00),
         last_watered=data["last_watered"],
         water_level=data["water_level"],
         min_water_required=data["min_water_required"],
@@ -69,6 +89,7 @@ def delete_flower(id):
     if not ok:
         return jsonify({"message": "Flower not found"}), 404
     return jsonify({"message": "Flower deleted successfully!"})
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5001, debug=True)

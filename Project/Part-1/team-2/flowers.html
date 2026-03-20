@@ -2,34 +2,152 @@
 <html lang="en">
 <head>
     <title>Flower Watering Status</title>
+    <style>
+        body {
+            font-family: Times New Roman;
+            background-color: white;
+            text-align: center;
+        }
+
+        .buttons {
+            margin: 16px auto;
+        }
+
+        .buttons button {
+            padding: 8px 16px;
+            margin: 4px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f3f3f3;
+        }
+
+        .buttons button:hover {
+            background-color: #e0e0e0;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: auto;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 600px;
+        }
+
+        th {
+            background-color: white;
+            color: black;
+            padding: 10px 16px;
+            border: 1px solid #ccc;
+        }
+
+        td {
+            padding: 10px 16px;
+            border: 1px solid #ccc;
+        }
+
+        .needs-water {
+            background-color: #ffcccc;
+            color: #c00;
+            font-weight: bold;
+        }
+
+        .sufficient {
+            background-color: #ccffcc;
+            color: #060;
+            font-weight: bold;
+        }
+
+        #status-msg {
+            margin: 10px;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <h2>Flower Watering Status</h2>
+
+    <div class="buttons">
+        <button onclick="loadAll()">Show All Flowers</button>
+        <button onclick="loadNeedsWatering()">Show Only Needs Watering</button>
+        <button onclick="runDailyCheck()">Run Daily Watering Check</button>
+    </div>
+
+    <p id="status-msg"></p>
+
     <table border="1">
-        <tr>
-            <th>Name</th>
-            <th>Last Watered</th>
-            <th>Water Level</th>
-            <th>Needs Watering</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Last Watered</th>
+                <th>Water Level (inches)</th>
+                <th>Needs Watering</th>
+            </tr>
+        </thead>
         <tbody id="flower-data"></tbody>
     </table>
 
     <script>
-        fetch('/flowers')
-            .then(response => response.json())
-            .then(data => {
-                let rows = "";
-                data.forEach(flower => {
-                    rows += `<tr>
-                        <td>${flower.name}</td>
-                        <td>${flower.last_watered}</td>
-                        <td>${flower.water_level} inches</td>
-                        <td>${flower.needs_watering ? "Yes" : "No"}</td>
-                    </tr>`;
-                });
-                document.getElementById("flower-data").innerHTML = rows;
+        function renderRows(data) {
+            if (data.length === 0) {
+                document.getElementById("flower-data").innerHTML =
+                    '<tr><td colspan="4">No flowers found.</td></tr>';
+                return;
+            }
+            let rows = "";
+            data.forEach(flower => {
+                const statusClass = flower.needs_watering ? "needs-water" : "sufficient";
+                const statusText  = flower.needs_watering ? "Yes" : "No";
+                rows += `<tr>
+                    <td>${flower.name}</td>
+                    <td>${flower.last_watered}</td>
+                    <td>${flower.water_level}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                </tr>`;
             });
+            document.getElementById("flower-data").innerHTML = rows;
+        }
+
+        function setStatus(msg) {
+            document.getElementById("status-msg").textContent = msg;
+        }
+
+        function loadAll() {
+            setStatus("Loading all flowers...");
+            fetch('/flowers')
+                .then(r => r.json())
+                .then(data => {
+                    renderRows(data);
+                    setStatus(`Showing all ${data.length} flower(s).`);
+                })
+                .catch(() => setStatus("Error loading flowers."));
+        }
+
+        function loadNeedsWatering() {
+            setStatus("Loading flowers that need watering...");
+            fetch('/flowers/needs_watering')
+                .then(r => r.json())
+                .then(data => {
+                    renderRows(data);
+                    setStatus(`${data.length} flower(s) need watering.`);
+                })
+                .catch(() => setStatus("Error loading flowers."));
+        }
+
+        function runDailyCheck() {
+            setStatus("Running daily watering check...");
+            fetch('/flowers/daily_check', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    setStatus(data.message);
+                    loadAll();
+                })
+                .catch(() => setStatus("Error running daily check."));
+        }
+
+        // Load all flowers on page open
+        loadAll();
     </script>
 </body>
 </html>
