@@ -17,7 +17,7 @@ def init_db():
             flower_id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
             last_watered DATE NOT NULL,
-            water_level INT NOT NULL,
+            water_level INT NOT NULL CHECK(water_level >= 0),
             min_water_required INT NOT NULL
 
         );
