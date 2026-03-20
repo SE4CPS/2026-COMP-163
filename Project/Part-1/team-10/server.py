@@ -7,9 +7,9 @@ def create_app():
     # app = Flask(__name__)
     app = get_app()
 
-    admin.del_db()
+    # admin.del_db()
     admin.init_db()
-    admin.seed_data()
+    # admin.seed_data()
 
     app.register_blueprint(frontend_bp)
     return app

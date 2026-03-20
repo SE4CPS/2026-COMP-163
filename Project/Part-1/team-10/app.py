@@ -18,7 +18,7 @@ def get_db_connection():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM team10_flower;")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM team10_flowers;")  # Placeholder for SELECT query
     flowers = cur.fetchall()
     cur.close()
     conn.close()
