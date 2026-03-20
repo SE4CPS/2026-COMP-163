@@ -41,14 +41,10 @@
             font-weight: bold;
         }
         .badge-needs {
-            background-color: #fde8e8;
             color: #641717;
-            border: 1px solid #f0a0a0;
         }
         .badge-ok {
-            background-color: #e8f5e9;
             color: #1b511e;
-            border: 1px solid #a5d6a7;
         }
         .dot {
             width: 8px;
@@ -76,6 +72,20 @@
             cursor: default;
         }
 
+        button.delete-btn {
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #e57373;
+            border-radius: 6px;
+            background: #fff;
+            color: #641717;
+        }
+
+         button.delete-btn:hover {
+            background: #fde8e8;
+        }
+
         #status-msg {
             margin-top: 1rem;
             font-size: 13px;
@@ -95,6 +105,7 @@
                 <th>Water Level</th>
                 <th>Status</th>
                 <th>Water</th>
+                <th>Delete</th>
             </tr>
         </thead>
         <tbody id="flower-data"></tbody>
@@ -124,6 +135,7 @@
                     <td>${flower.water_level} inches</td>
                     <td>${badge}</td>
                     <td>${btn}</td>
+                    <td><button class="delete-btn" onclick="deleteFlower(${flower.id})">DELETE</button></td>
                 </tr>`;
             });
             document.getElementById("flower-data").innerHTML = rows;
@@ -145,6 +157,23 @@
                     `Error watering flower #${id}: ${err.message}`;
             });
         }
+
+        function deleteFlower(id) {
+            fetch(`${API}/flowers/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('status-msg').textContent =
+                    result.message || `Flower #${id} deleted.`;
+                loadFlowers();
+            })
+            .catch(err => {
+                document.getElementById('status-msg').textContent =
+                    `Error deleting flower #${id}: ${err.message}`;
+            });
+        }
+
         function loadFlowers() {
             fetch(`${API}/flowers`)
                 .then(response => response.json())
