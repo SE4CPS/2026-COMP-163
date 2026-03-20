@@ -24,6 +24,7 @@ PAGE = """
 </head>
 <body>
   <h2>Flower Watering Status</h2>
+
   <div class="card">
     <h3>Add Flower</h3>
     <form method="POST" action="{{ url_for('frontend.add') }}">
@@ -36,6 +37,23 @@ PAGE = """
       </div>
     </form>
   </div>
+
+  {% if edit_item %}
+  <div class="card">
+    <h3>Edit Flower - {{ edit_item.name }}</h3>
+    <form method="POST" action="{{ url_for('frontend.edit', id=edit_item.id) }}">
+      <div class="row">
+        <label>Last Watered<br><input name="last_watered" type="date" value="{{ edit_item.last_watered }}" required></label>
+        <label>Water Level (inches)<br><input name="water_level" type="number" min="0" value="{{ edit_item.water_level }}" required></label>
+        <div style="align-self:end;">
+          <button type="submit">Save</button>
+          <a href="{{ url_for('frontend.index') }}" style="margin-left:10px;">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
   <table>
     <thead>
       <tr>
