@@ -30,6 +30,9 @@ PAGE = """
         <label>Name<br><input name="name" required></label>
         <label>Color<br><input name="color" placeholder="Mixed"></label>
         <label>Price<br><input name="price" type="number" step="0.01" min="0" required></label>
+        <label>Last Watered<br><input name="last_watered" type="date" required></label>
+        <label>Water Level<br><input name="water_level" type="number" min="0" value="10" required></label>
+        <label>Min Water Required<br><input name="min_water_required" type="number" min="0" value="5" required></label>
         <div style="align-self:end;"><button type="submit">Add</button></div>
       </div>
     </form>
@@ -91,8 +94,11 @@ def index():
 def add():
     name = request.form.get("name", "").strip()
     color = (request.form.get("color", "").strip() or "Mixed")
-    price = request.form.get("price", "").strip()
-    backend.insert_flower(name, color, price)
+    price = request.form.get("price", "0").strip()
+    last_watered = request.form.get("last_watered", "").strip()
+    water_level = int(request.form.get("water_level", 10))
+    min_water_required = int(request.form.get("min_water_required", 5))
+    backend.insert_flower(name, color, price, last_watered, water_level, min_water_required)
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/edit/<int:flower_id>", methods=["POST"])

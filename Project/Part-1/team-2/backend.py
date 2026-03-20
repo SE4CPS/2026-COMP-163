@@ -12,15 +12,17 @@ def _get_conn():
     return psycopg2.connect(DATABASE_URL)
 
 
-def insert_flower(name, color, price):
+def insert_flower(name, color, price, last_watered=None, water_level=10, min_water_required=5):
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        sql = f"""
-            INSERT INTO team2_flowers  (name, color, price)
-            VALUES ('{name}', '{color}', {price});
-        """
-        cur.execute(sql)
+        import datetime
+        if last_watered is None:
+            last_watered = datetime.date.today().isoformat()
+        cur.execute("""
+            INSERT INTO team2_flowers (name, color, price, last_watered, water_level, min_water_required)
+            VALUES (%s, %s, %s, %s, %s, %s);
+        """, (name, color, price, last_watered, water_level, min_water_required))
         conn.commit()
         return True
     except Exception as e:
