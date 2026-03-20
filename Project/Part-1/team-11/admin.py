@@ -12,11 +12,11 @@ def _get_conn():
 def init_db():
     conn = _get_conn()
     cur = conn.cursor()
+    # cur.execute("DROP TABLE IF EXISTS team11_flowers;") -- applies new constraints if changes made
     cur.execute("""
-        DROP TABLE team11_flowers;
         CREATE TABLE IF NOT EXISTS team11_flowers (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
+            name VARCHAR(100) NOT NULL UNIQUE,
             last_watered DATE NOT NULL,
             water_level INT NOT NULL,
             min_water_required INT NOT NULL
@@ -34,7 +34,8 @@ def seed_data():
         VALUES 
             ('Rose', '2024-02-10', 20, 5),
             ('Tulip', '2024-02-08', 10, 7),
-            ('Lily', '2026-03-17', 3, 5);
+            ('Lily', '2026-03-17', 3, 5)
+                ON CONFLICT (name) DO NOTHING;
     """)
     conn.commit()
     cur.close()
