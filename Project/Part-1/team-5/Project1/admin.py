@@ -13,6 +13,7 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
+        DROP TABLE IF EXISTS team5_flowers;
         CREATE TABLE IF NOT EXISTS team5_flowers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
@@ -33,7 +34,9 @@ def seed_data():
             VALUES 
                 (1, 'Rose', '2024-02-10', 20, 5), 
                 (2, 'Tulip', '2024-02-08', 10, 7),
-                (3, 'Lily', '2024-02-05', 3, 5) ON CONFLICT (id) DO NOTHING;
+                (3, 'Lily', '2024-02-05', 3, 5) ON CONFLICT (id) DO NOTHING;  
+        UPDATE team5_flowers
+        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
     """)
     conn.commit()
     cur.close()
