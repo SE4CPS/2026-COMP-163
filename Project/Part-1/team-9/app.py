@@ -18,7 +18,7 @@ def get_db_connection():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM team9_flowers;")
+    cur.execute("SELECT id, name, last_watered, water_level, min_water_required FROM team9_flowers;")
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -53,9 +53,9 @@ def add_flower():
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO team9_flowers (name, last_watered, water_level, min_water_required)
-        VALUES (%s, %s, %s, %s);
-    """, (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))
+        INSERT INTO team9_flowers (name, last_watered, water_level, last_watered_water_level, min_water_required)
+        VALUES (%s, %s, %s, %s, %s);
+    """, (data['name'], data['last_watered'], data['water_level'], data['water_level'], data['min_water_required']))
     conn.commit()
     cur.close()
     conn.close()
@@ -70,9 +70,10 @@ def update_flower(id):
     cur.execute("""
         UPDATE team9_flowers
         SET last_watered = %s,
-            water_level = %s
+            water_level = %s,
+            last_watered_water_level = %s,
         WHERE id = %s;
-    """, (data['last_watered'], data['water_level'], id))
+    """, (data['last_watered'], data['water_level'], data['water_level'], id))
     conn.commit()
     cur.close()
     conn.close()

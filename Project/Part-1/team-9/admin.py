@@ -17,6 +17,7 @@ def init_db():
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             last_watered DATE NOT NULL,
+            last_watered_water_level INT NOT NULL,
             water_level INT NOT NULL,
             min_water_required INT NOT NULL
         );
@@ -34,13 +35,25 @@ def seed_data():
     
     if count == 0:
         cur.execute("""
-            INSERT INTO team9_flowers (name, last_watered, water_level, min_water_required) 
+            INSERT INTO team9_flowers (name, last_watered, water_level, last_watered_water_level, min_water_required) 
             VALUES 
-            ('Rose', '2024-02-10', 20, 5),
-            ('Tulip', '2024-02-08', 10, 7),
-            ('Lily', '2024-02-05', 3, 5);
+            ('Rose', '2024-02-10', 20, 20, 5),
+            ('Tulip', '2024-02-08', 10, 10, 7),
+            ('Lily', '2024-02-05', 3, 3, 5);
         """)
     conn.commit()
     cur.close()
     conn.close()
     
+def update_water_levels():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE team9_flowers
+        SET water_level = GREATEST(last_watered_water_level - (5 * (CURRENT_DATE - last_watered)), 0);
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
