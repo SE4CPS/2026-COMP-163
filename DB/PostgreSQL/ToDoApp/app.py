@@ -112,7 +112,10 @@ def print_table(rows, headers=None):
 def init_db():
     with get_conn_cursor() as (_, cur):
         timed_execute(cur, """
-            -- CREATE TABLE AppUser
+            CREATE TABLE IF NOT EXIST AppUser
+                    id SERIAL INT,
+                    name VARCHAR(256) NOT NULL,
+                    email VARCHAR(256) NOT NULL UNIQUE;
         """, label="Create AppUser")
 
         timed_execute(cur, """
