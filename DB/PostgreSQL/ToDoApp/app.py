@@ -110,6 +110,7 @@ def print_table(rows, headers=None):
 # =========================================================
 
 def init_db():
+
     with get_conn_cursor() as (_, cur):
         timed_execute(cur, """
             CREATE TABLE IF NOT EXISTS AppUser (
@@ -134,6 +135,10 @@ def init_db():
 
 
 def seed_data():
+
+    # Task(102, 'Alice', 'Finish presentation pending')
+    # Task(200, 'Bob', 'Buy groceries is done')
+
     with get_conn_cursor() as (_, cur):
         timed_execute(cur, """
             -- INSERT USERS
