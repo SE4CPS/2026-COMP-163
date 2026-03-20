@@ -85,7 +85,7 @@ def delete_flower(id):
     return jsonify({"message": "Flower deleted successfully!"})
 
 # Simulates a flowers daily loss
-@app.route('/flowers/<int:id>/water', methods=['PUT'])
+@app.route('/flowers/<int:id>/water_loss', methods=['PUT'])
 def daily_loss(id):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -96,7 +96,7 @@ def daily_loss(id):
     conn.close()
     return jsonify({"message": "Flower has lost water!"})
 
-@app.route('/flowers/<int:id>/water', methods=['PUT'])
+@app.route('/flowers/<int:id>/water_flower', methods=['PUT'])
 def water_flower(id):
     conn = get_db_connection()
     cur = conn.cursor()
