@@ -100,7 +100,7 @@ def delete_flower(id):
 def water_flower(id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE team5_flowers SET water_level = water_level + 1, last_watered = CURRENT_DATE WHERE id = %s",
+    cur.execute("UPDATE team5_flowers SET water_level = water_level + 5, last_watered = CURRENT_DATE WHERE id = %s",
                 (id,))
     
     conn.commit()

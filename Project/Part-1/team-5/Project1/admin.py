@@ -32,9 +32,12 @@ def seed_data():
     cur.execute("""
         INSERT INTO team5_flowers (id, name, last_watered, water_level, min_water_required) 
             VALUES 
-                (1, 'Rose', '2024-02-10', 20, 5), 
-                (2, 'Tulip', '2024-02-08', 10, 7),
-                (3, 'Lily', '2024-02-05', 3, 5) ON CONFLICT (id) DO NOTHING;  
+                (1, 'Rose', '2026-02-10', 20, 5), 
+                (2, 'Tulip', '2026-03-08', 10, 7),
+                (3, 'Lily', '2026-03-05', 3, 5),  
+                (4, 'Daisy', '2026-03-01', 0, 3),
+                (5, 'Chrysanthemum', '2026-03-19', 9, 10),
+                (6, 'Orchid', '2026-03-20', 8, 8) ON CONFLICT (id) DO NOTHING;
         UPDATE team5_flowers
         SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
     """)
