@@ -32,7 +32,7 @@ def get_flowers():
 def get_flowers_needing_water():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM v_team10_flower WHERE water_level < current_water_level;")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM v_team10_flowers WHERE water_level < current_water_level;")  # Placeholder for SELECT query
     flowers = cur.fetchall()
     cur.close()
     conn.close()
