@@ -112,14 +112,24 @@ def print_table(rows, headers=None):
 def init_db():
     with get_conn_cursor() as (_, cur):
         timed_execute(cur, """
-            CREATE TABLE IF NOT EXIST AppUser
-                    id SERIAL INT,
-                    name VARCHAR(256) NOT NULL,
-                    email VARCHAR(256) NOT NULL UNIQUE;
+            CREATE TABLE IF NOT EXISTS AppUser (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(256) NOT NULL,
+                email VARCHAR(256) NOT NULL UNIQUE
+            );
         """, label="Create AppUser")
 
         timed_execute(cur, """
-            -- CREATE TABLE Task
+            CREATE TABLE IF NOT EXISTS Task (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                title VARCHAR(256) NOT NULL,
+                status VARCHAR(50) NOT NULL,
+                description TEXT,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                FOREIGN KEY (user_id) REFERENCES AppUser(id) ON DELETE CASCADE,
+                reminder_time TIMESTAMPTZ;
+            );
         """, label="Create Task")
 
 
