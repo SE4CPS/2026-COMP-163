@@ -28,13 +28,20 @@ def init_db():
 def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO team7_flowers (name, last_watered, water_level, min_water_required) 
-        VALUES 
-            ('Rose', '2024-02-10', 20, 5),
-            ('Tulip', '2024-02-08', 10, 7),
-            ('Lily', '2024-02-05', 3, 5);
-    """)
+
+    cur.execute("SELECT COUNT(*) FROM team7_flowers;")
+    count = cur.fetchone()[0]
+
+    if count == 0:
+        cur.execute("""
+            INSERT INTO team7_flowers (name, last_watered, water_level, min_water_required) 
+            VALUES 
+                ('Rose', '2024-02-10', 20, 5),
+                ('Tulip', '2024-02-08', 10, 7),
+                ('Lily', '2024-02-05', 3, 5);
+        """)
+
     conn.commit()
     cur.close()
     conn.close()
+
