@@ -17,7 +17,8 @@ def insert_flower(name, last_watered, water_level, min_water_required):
     try:
         sql = f"""
             INSERT INTO team11_flowers (name, last_watered, water_level, min_water_required)
-            VALUES ('{name}', '{last_watered}', {water_level}, {min_water_required});
+            VALUES ('{name}', '{last_watered}', {water_level}, {min_water_required})
+            ON CONFLICT (name) DO NOTHING;
         """
         cur.execute(sql)
         conn.commit()
