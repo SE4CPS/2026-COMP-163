@@ -13,25 +13,80 @@
             <th>Last Watered</th>
             <th>Water Level</th>
             <th>Needs Watering</th>
+            <th>Actions</th>
         </tr>
         <tbody id="flower-data"></tbody>
     </table>
+    <dialog id="water_flower_modal">
+        <h3>Water <span id="water_flower_modal_name"></h3>
+        <p>Note: This flower needs at least <span id="water_flower_modal_min"></span> inches of water for survival.</p>
+        <form id="water_flower_form">
+            <input type="number" id="water_flower_flower_id" min="0" required style="display: none;">
+            <label for="water_flower_water_level">water level (inches): </label><input type="number" id="water_flower_water_level" min="0" required>
+            <button type="submit">submit</button><button onclick="water_flower_modal.close()">cancel</button>
+        </form>
+
+    </dialog>
 
     <script>
-        fetch('/flowers')
-            .then(response => response.json())
-            .then(data => {
-                let rows = "";
-                data.forEach(flower => {
-                    rows += `<tr>
-                        <td>${flower.name}</td>
-                        <td>${flower.last_watered}</td>
-                        <td>${flower.water_level} inches</td>
-                        <td>${flower.needs_watering ? "Yes" : "No"}</td>
-                    </tr>`;
-                });
-                document.getElementById("flower-data").innerHTML = rows;
+        let flowers = {};
+
+        function water_flower(id, params) {
+            return fetch(`/flowers/water/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(params),
+                headers: { "Content-type": "application/json; charset=UTF-8" }
             });
+        }
+
+        water_flower_form.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            let flower_id = Number(water_flower_flower_id.value);
+            let water_level = Number(water_flower_water_level.value);
+
+            water_flower(flower_id, {
+                water_level: Number(water_flower_water_level.value),
+            }).then(response => {
+                if (response.status != 200) {
+                    alert('failed to update: ' + response.status);
+                    return;
+                }
+                water_flower_modal.close();
+                fetch_flower_list();
+            });
+        });
+
+        function show_water_flower_modal(flower_id) {
+            flower = flowers[flower_id];
+            water_flower_modal_name.innerText = flower.name;
+            water_flower_modal_min.innerText = flower.min_water_required;
+            water_flower_flower_id.value = flower_id;
+
+            water_flower_modal.showModal();
+        }
+
+        function fetch_flower_list() {
+            fetch('/flowers')
+                .then(response => response.json())
+                .then(data => {
+                    let rows = "";
+                    data.forEach(flower => {
+                        rows += `<tr>
+                            <td>${flower.name}</td>
+                            <td>${flower.last_watered}</td>
+                            <td>${flower.water_level} inches</td>
+                            <td>${flower.needs_watering ? "Yes" : "No"}</td>
+                            <td><button onclick="show_water_flower_modal(${flower.id})">water</button></td>
+                        </tr>`;
+                        flowers[flower.id] = flower;
+                    });
+                    document.getElementById("flower-data").innerHTML = rows;
+                });
+        }
+
+        fetch_flower_list();
+
     </script>
 </body>
 

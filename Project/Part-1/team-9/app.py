@@ -25,7 +25,7 @@ def get_flowers():
     
     return jsonify([{
         "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-        "water_level": f[3], "needs_watering": f[3] < f[4]
+        "water_level": f[3], "needs_watering": f[3] < f[4], "min_water_required": f[4]
     } for f in flowers])
 
 @app.route('/flowers/needs_watering', methods=['GET'])
@@ -71,9 +71,27 @@ def update_flower(id):
         UPDATE team9_flowers
         SET last_watered = %s,
             water_level = %s,
-            last_watered_water_level = %s,
+            last_watered_water_level = %s
         WHERE id = %s;
     """, (data['last_watered'], data['water_level'], data['water_level'], id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Flower updated successfully!"})
+
+# Water a flower by ID
+@app.route('/flowers/water/<int:id>', methods=['PUT'])
+def water_flower(id):
+    data = request.json
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE team9_flowers
+        SET last_watered = CURRENT_DATE,
+            water_level = %s,
+            last_watered_water_level = %s
+        WHERE id = %s;
+    """, (data['water_level'], data['water_level'], id))
     conn.commit()
     cur.close()
     conn.close()
