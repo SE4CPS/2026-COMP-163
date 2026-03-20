@@ -39,7 +39,7 @@ PAGE = """
   <table>
     <thead>
       <tr>
-        <th>ID</th><th>Name</th><th>Last Watered</th><th>Water Level</th><th>Min Water Required</th><th>Needs Watering</th><th>Actions</th>
+        <th>ID</th><th>Name</th><th>Last Watered</th><th>Water Level</th><th>Min Water Required</th><th>Current Water Level</th><th>Needs Watering</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -50,6 +50,7 @@ PAGE = """
         <td>{{ r.last_watered }}</td>
         <td>{{ r.water_level }} inches</td>
         <td>{{ r.min_water_required }} inches</td>
+        <td>{{ r.current_water_level }} inches</td>
         <td class="{{ 'yes' if r.needs_watering else 'no' }}">{{ "Yes" if r.needs_watering else "No" }}</td>
         <td>
           <form method="POST" action="{{ url_for('frontend.water', id=r.id) }}" style="display:inline-flex; gap:6px;">

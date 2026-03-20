@@ -12,7 +12,7 @@ def _get_conn():
 def del_db():
     conn = _get_conn()
     cur = conn.cursor()
-    cur.execute("DROP TABLE IF EXISTS team10_flowers;")
+    cur.execute("DROP TABLE IF EXISTS team10_flowers CASCADE;")
     conn.commit()
     cur.close()
     conn.close()
@@ -29,6 +29,17 @@ def init_db():
             min_water_required INT NOT NULL
         );
     """)
+    cur.execute("""
+            CREATE OR REPLACE VIEW v_team10_flowers AS
+            SELECT
+            id,
+            name,
+            last_watered,
+            water_level,
+            min_water_required,
+            GREATEST(0, water_level - 5 * (CURRENT_DATE - last_watered)) AS current_water_level
+            FROM team10_flowers;
+            """)
     conn.commit()
     cur.close()
     conn.close()
@@ -37,12 +48,17 @@ def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO team10_flowers (name, last_watered, water_level, min_water_required)
+        INSERT INTO team10_flowers (
+                name,
+                last_watered,
+                water_level,
+                min_water_required
+            )
         VALUES
             ('Rose',  '2024-02-10', 20, 5),
             ('Tulip', '2024-02-08', 10, 7),
-            ('Lily',  '2024-02-05',  3, 5);
-    """)
+            ('Lily',  '2024-02-05', 3, 5);
+        """)
     conn.commit()
     cur.close()
     conn.close()
