@@ -42,9 +42,9 @@ PAGE = """
     <form method="POST" action="{{ url_for('frontend.edit', id=edit_item.id) }}">
       <div class="row">
         <label>Name<br><input name="name" value="{{ edit_item.name }}" required></label>
-        <label>Last Watered<br><input name="last_watered" placeholder="YYYY-MM-DD"></label>
-        <label>Water Level<br><input name="water_level" type="number" step="0.01" min="0" required></label>
-        <label>Minimum Required Level<br><input name="min_water_required" type="number" step="0.01" min="0" required></label>
+        <label>Last Watered<br><input name="last_watered" placeholder="YYYY-MM-DD" value="{{ edit_item.last_watered }}"></label>
+        <label>Water Level<br><input name="water_level" type="number" step="0.01" min="0" value="{{ edit_item.water_level }}" required></label>
+        <label>Minimum Required Level<br><input name="min_water_required" type="number" step="0.01" min="0" value="{{ edit_item.min_water_required }}" required></label>
         <div style="align-self:end;">
           <button type="submit">Save</button>
           <a href="{{ url_for('frontend.index') }}" style="margin-left:10px;">Cancel</a>
