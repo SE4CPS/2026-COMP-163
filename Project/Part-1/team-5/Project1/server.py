@@ -2,15 +2,11 @@
 from flask import send_from_directory
 import admin
 # from frontend import frontend_bp
-from app import app as app_API, water_loss
-
+from app import app as app_API
 app = app_API
 
 admin.init_db()
 admin.seed_data()
-
-# calculates water loss once when server starts
-# water_loss()
 
 @app.route('/')
 def flowers_app():

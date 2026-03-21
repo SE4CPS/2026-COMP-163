@@ -70,7 +70,8 @@ def add_flower():
     cur = conn.cursor()
     cur.execute("""
                 INSERT INTO team5_flowers (name, last_watered, water_level, min_water_required) 
-                VALUES (%s, %s, %s, %s);
+                VALUES (%s, %s, %s, %s)
+                RETURNING id;
                 """, # how to make place holders
                 (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
 

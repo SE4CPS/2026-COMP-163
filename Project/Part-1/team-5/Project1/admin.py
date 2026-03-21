@@ -43,6 +43,12 @@ def seed_data():
                     ('Chrysanthemum', '2026-03-19', 9, 10),
                     ('Orchid', '2026-03-20', 8, 8)
         """)
+
+        cur.execute("""
+            UPDATE team5_flowers 
+            SET water_level = water_level - (5 * (CURRENT_DATE - last_watered))
+            WHERE last_watered < CURRENT_DATE;
+        """)
     conn.commit()
     cur.close()
     conn.close()
