@@ -70,18 +70,9 @@ def add_flower():
     cur = conn.cursor()
     cur.execute("""
                 INSERT INTO team5_flowers (name, last_watered, water_level, min_water_required) 
-                VALUES (%s, %s, %s, %s)
-                RETURNING id;
+                VALUES (%s, %s, %s, %s);
                 """, # how to make place holders
                 (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
-    
-    new_id = cur.fetchone()[0]
-    
-    cur.execute("""
-        UPDATE team5_flowers
-        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered))
-        WHERE id = %s AND last_watered < CURRENT_DATE;
-    """, (new_id,))
 
     conn.commit()
     cur.close()
