@@ -234,7 +234,7 @@ def daily_watering_check():
         cur.execute(
             f"""
             UPDATE {TEAM_TABLE}
-            SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
+            SET water_level = GREATEST(0, water_level - (5 * (CURRENT_DATE - last_watered)));
 
             
             """

@@ -84,15 +84,22 @@ def get_flowers_needing_water():
 @app.route('/team8_flowers/add', methods=['POST'])
 def add_flower():
     data = request.form
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO team8_flowers (name, last_watered, water_level, min_water_required) VALUES (%s, %s, %s, %s)", 
-                (data['name'], data['last_watered'], data['water_level'], data['min_water_required'])) 
-    conn.commit()
-    cur.close()
-    conn.close()
-    flash("Flower added successfully!")
-    return redirect(url_for('index'))
+
+    try:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("INSERT INTO team8_flowers (name, last_watered, water_level, min_water_required) VALUES (%s, %s, %s, %s)", 
+                    (data['name'], data['last_watered'], data['water_level'], data['min_water_required'])) 
+        conn.commit()
+        cur.close()
+        conn.close()
+        flash("Flower added successfully!")
+        return redirect(url_for('index'))
+    
+    except Exception as e:
+        flash("Invalid input. Please check your values.")
+        return redirect(url_for('index'))
 
 # Update a flower by ID 
 #I think this should also be part of the frontend buttons or inputs? Let someone edit a flower based on a flower_id ???
