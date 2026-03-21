@@ -91,7 +91,9 @@ Needs delete button
                         <td>
                             <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.flower_id}">                                <input type="hidden" name="id" value="${flower.flower_id}">
                                 <input type="hidden" name="id" value="${flower.flower_id}">
-                                <input name="name" value="${flower.name}" required>
+                                <input name="name" 
+                                    value="${flower.name}"
+                                    maxlength="100" required>
                                 <input type="date" name="last_watered"
                                     value="${flower.last_watered}"
                                     max="${today}" required>
