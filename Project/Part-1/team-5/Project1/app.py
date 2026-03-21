@@ -13,10 +13,19 @@ DATABASE_URL = (
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# create a color indicator function for is the flower needs watering later
-# GREEN - no watering needed
-# YELLOW - may need watering soon
-# RED - needs to be watered now
+# function will run at server startup
+def water_loss():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+                UPDATE team5_flowers 
+                SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)), last_watered = CURRENT_DATE
+                WHERE last_watered < CURRENT_DATE;
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 # Get all flowers
 @app.route('/flowers', methods=['GET'])
@@ -26,7 +35,7 @@ def get_flowers():
     cur.execute("""
                 SELECT id, name, last_watered, water_level, min_water_required 
                 FROM team5_flowers;
-                """)  # Placeholder for SELECT query (used SELECT and FROM)
+    """)  # Placeholder for SELECT query (used SELECT and FROM)
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -43,7 +52,7 @@ def get_flowers_needing_water():
     cur.execute("""
                 SELECT id, name, last_watered, water_level, min_water_required 
                 FROM team5_flowers WHERE water_level < min_water_required
-                """)  # Placeholder for SELECT query (used WHERE to see if flower needs watering)
+    """)  # Placeholder for SELECT query (used WHERE to see if flower needs watering)
     flowers = cur.fetchall()
     cur.close()
     conn.close()
@@ -61,9 +70,20 @@ def add_flower():
     cur = conn.cursor()
     cur.execute("""
                 INSERT INTO team5_flowers (name, last_watered, water_level, min_water_required) 
-                VALUES (%s, %s, %s, %s);
+                VALUES (%s, %s, %s, %s)
+                RETURNING id;
                 """, # how to make place holders
                 (data['name'], data['last_watered'], data['water_level'], data['min_water_required']))  # Placeholder
+    
+    new_id = cur.fetchone()[0]
+    
+    cur.execute("""
+        UPDATE team5_flowers
+        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)),
+            last_watered < CURRENT_DATE
+        WHERE id = %s;
+    """, (new_id,))
+
     conn.commit()
     cur.close()
     conn.close()
@@ -99,18 +119,6 @@ def delete_flower(id):
     cur.close()
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})
-
-# Simulates a flowers daily loss
-#@app.route('/flowers/<int:id>/water_loss', methods=['PUT'])
-#def daily_loss(id):
-#    conn = get_db_connection()
-#    cur = conn.cursor()
-#    cur.execute("UPDATE team5_flowers SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)), last_watered = CURRENT_DATE WHERE id = %s", 
-#                (id,))
-#    conn.commit()
-#    cur.close()
-#    conn.close()
-#    return jsonify({"message": "Flower has lost water!"})
 
 @app.route('/flowers/<int:id>/water_flower', methods=['PUT'])
 def water_flower(id):

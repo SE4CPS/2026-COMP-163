@@ -28,18 +28,21 @@ def init_db():
 def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO team5_flowers (id, name, last_watered, water_level, min_water_required) 
-            VALUES 
-                (1, 'Rose', '2026-02-10', 20, 5), 
-                (2, 'Tulip', '2026-03-08', 10, 7),
-                (3, 'Lily', '2026-03-05', 3, 5),  
-                (4, 'Daisy', '2026-03-01', 0, 3),
-                (5, 'Chrysanthemum', '2026-03-19', 9, 10),
-                (6, 'Orchid', '2026-03-20', 8, 8) ON CONFLICT (id) DO NOTHING;
-        UPDATE team5_flowers
-        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
-    """)
+
+    cur.execute("SELECT COUNT(*) FROM team5_flowers;")
+    count = cur.fetchone()[0]
+
+    if count == 0:
+        cur.execute("""
+            INSERT INTO team5_flowers (name, last_watered, water_level, min_water_required) 
+                VALUES 
+                    ('Rose', '2026-02-10', 20, 5), 
+                    ('Tulip', '2026-03-08', 10, 7),
+                    ('Lily', '2026-03-05', 3, 5),  
+                    ('Daisy', '2026-03-01', 0, 3),
+                    ('Chrysanthemum', '2026-03-19', 9, 10),
+                    ('Orchid', '2026-03-20', 8, 8)
+        """)
     conn.commit()
     cur.close()
     conn.close()
