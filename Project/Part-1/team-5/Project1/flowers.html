@@ -82,8 +82,31 @@
             color: #641717;
         }
 
-         button.delete-btn:hover {
+        button.delete-btn:hover {
             background: #fde8e8;
+        }
+
+        input.add-input {
+            padding: 5px 8px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button.add-btn {
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            background: #fff;
+        }
+        button.add-btn:hover {
+            background: #e8f5e9;
+            border-color: #2e7d32;
+            color: #2e7d32;
         }
 
         #status-msg {
@@ -108,6 +131,14 @@
                 <th>Delete</th>
             </tr>
         </thead>
+        <tr id="add-row">
+            <td><input class="add-input" type="text" id="input-name" placeholder="Name" /></td>
+            <td><input class="add-input" type="date" id="input-last-watered" /></td>
+            <td><input class="add-input" type="number" id="input-water-level" placeholder="e.g. 20" /></td>
+            <td><input class="add-input" type="number" id="input-min-water" placeholder="min required" /></td>
+            <td></td>
+            <td><button class="add-btn" onclick="addFlower()">ADD</button></td>
+        </tr>
         <tbody id="flower-data"></tbody>
     </table>
     
@@ -139,6 +170,41 @@
                 </tr>`;
             });
             document.getElementById("flower-data").innerHTML = rows;
+        }
+
+        function addFlower() {
+            const name = document.getElementById('input-name').value;
+            const lastWatered = document.getElementById('input-last-watered').value;
+            const waterLevel = document.getElementById('input-water-level').value;
+            const minWater = document.getElementById('input-min-water').value;
+
+            if (!name || !lastWatered || !waterLevel || !minWater) {
+                document.getElementById('status-msg').textContent = 'Please fill in all fields.';
+                return;
+            }
+
+            fetch(`${API}/flowers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    last_watered: lastWatered,
+                    water_level: parseInt(waterLevel),
+                    min_water_required: parseInt(minWater)
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('status-msg').textContent = result.message || 'Flower added!';
+                document.getElementById('input-name').value = '';
+                document.getElementById('input-last-watered').value = '';
+                document.getElementById('input-water-level').value = '';
+                document.getElementById('input-min-water').value = '';
+                loadFlowers();
+            })
+            .catch(err => {
+                document.getElementById('status-msg').textContent = 'Error adding flower: ' + err.message;
+            });
         }
 
         function waterFlower(id) {
