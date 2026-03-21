@@ -30,7 +30,6 @@
         tr:nth-child(even) {
             background-color: #fafafa;
         }
-
         .badge {
             display: inline-flex;
             align-items: center;
@@ -53,7 +52,6 @@
         }
         .dot-needs { background-color: #d62929; }
         .dot-ok    { background-color: #52ad4d; }
-
         button.water-btn {
             padding: 5px 14px;
             font-size: 13px;
@@ -71,7 +69,6 @@
             opacity: 0.4;
             cursor: default;
         }
-
         button.delete-btn {
             padding: 5px 14px;
             font-size: 13px;
@@ -81,11 +78,9 @@
             background: #fff;
             color: #641717;
         }
-
         button.delete-btn:hover {
             background: #fde8e8;
         }
-
         input.add-input {
             padding: 5px 8px;
             font-size: 13px;
@@ -94,7 +89,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-
         button.add-btn {
             padding: 5px 14px;
             font-size: 13px;
@@ -108,7 +102,6 @@
             border-color: #2e7d32;
             color: #2e7d32;
         }
-
         #status-msg {
             margin-top: 1rem;
             font-size: 13px;
@@ -141,7 +134,7 @@
         </tr>
         <tbody id="flower-data"></tbody>
     </table>
-    
+
     <p id="status-msg"></p>
 
     <script>
@@ -150,26 +143,25 @@
         function renderFlowers(data) {
             let rows = "";
             data.forEach(flower => {
-                const needsWater = flower.needs_watering;
-
-                const badge = needsWater
-                    ? `<span class="badge badge-needs"><span class="dot dot-needs"></span>NEEDS WATER</span>`
-                    : `<span class="badge badge-ok"><span class="dot dot-ok"></span>Hydrated :3</span>`;
-
-                const btn = `<button class="water-btn" onclick="waterFlower(${flower.id})" ${!needsWater ? 'disabled' : ''}>
-                    WATER
-                </button>`;
-
-                rows += `<tr id="row-${flower.id}">
-                    <td>${flower.name}</td>
-                    <td>${flower.last_watered}</td>
-                    <td>${flower.water_level} inches</td>
-                    <td>${badge}</td>
-                    <td>${btn}</td>
-                    <td><button class="delete-btn" onclick="deleteFlower(${flower.id})">DELETE</button></td>
-                </tr>`;
+                rows += buildRow(flower);
             });
             document.getElementById("flower-data").innerHTML = rows;
+        }
+
+        function buildRow(flower) {
+            const needsWater = flower.needs_watering;
+            const badge = needsWater
+                ? `<span class="badge badge-needs"><span class="dot dot-needs"></span>NEEDS WATER</span>`
+                : `<span class="badge badge-ok"><span class="dot dot-ok"></span>Hydrated :3</span>`;
+            const btn = `<button class="water-btn" onclick="waterFlower(${flower.id})" ${!needsWater ? 'disabled' : ''}>WATER</button>`;
+            return `<tr id="row-${flower.id}">
+                <td>${flower.name}</td>
+                <td id="lw-${flower.id}">${flower.last_watered}</td>
+                <td id="wl-${flower.id}">${flower.water_level} inches</td>
+                <td id="st-${flower.id}">${badge}</td>
+                <td id="btn-${flower.id}">${btn}</td>
+                <td><button class="delete-btn" onclick="deleteFlower(${flower.id})">DELETE</button></td>
+            </tr>`;
         }
 
         function addFlower() {
@@ -213,14 +205,28 @@
                 headers: { 'Content-Type': 'application/json' }
             })
             .then(response => response.json())
-            .then(result => {
-                document.getElementById('status-msg').textContent =
-                    result.message || `Flower #${id} watered successfully.`;
-                loadFlowers();
+            .then(() => {
+                fetch(`${API}/flowers`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const flower = data.find(f => f.id === id);
+                        if (flower) {
+                            const today = new Date().toISOString().split('T')[0];
+                            document.getElementById(`lw-${id}`).textContent = today;
+                            document.getElementById(`wl-${id}`).textContent = flower.water_level + ' inches';
+                            if (flower.needs_watering) {
+                                document.getElementById(`st-${id}`).innerHTML = `<span class="badge badge-needs"><span class="dot dot-needs"></span>NEEDS WATER</span>`;
+                                document.getElementById(`btn-${id}`).innerHTML = `<button class="water-btn" onclick="waterFlower(${id})">WATER</button>`;
+                            } else {
+                                document.getElementById(`st-${id}`).innerHTML = `<span class="badge badge-ok"><span class="dot dot-ok"></span>Hydrated :3</span>`;
+                                document.getElementById(`btn-${id}`).innerHTML = `<button class="water-btn" onclick="waterFlower(${id})" disabled>WATER</button>`;
+                            }
+                        }
+                        document.getElementById('status-msg').textContent = 'Flower watered!';
+                    });
             })
             .catch(err => {
-                document.getElementById('status-msg').textContent =
-                    `Error watering flower #${id}: ${err.message}`;
+                document.getElementById('status-msg').textContent = `Error watering flower #${id}: ${err.message}`;
             });
         }
 
@@ -230,13 +236,12 @@
             })
             .then(response => response.json())
             .then(result => {
-                document.getElementById('status-msg').textContent =
-                    result.message || `Flower #${id} deleted.`;
-                loadFlowers();
+                document.getElementById('status-msg').textContent = result.message || `Flower #${id} deleted.`;
+                const row = document.getElementById(`row-${id}`);
+                if (row) row.remove();
             })
             .catch(err => {
-                document.getElementById('status-msg').textContent =
-                    `Error deleting flower #${id}: ${err.message}`;
+                document.getElementById('status-msg').textContent = `Error deleting flower #${id}: ${err.message}`;
             });
         }
 
@@ -244,10 +249,8 @@
             fetch(`${API}/flowers`)
                 .then(response => response.json())
                 .then(data => renderFlowers(data))
-                // debug
                 .catch(err => {
-                    document.getElementById('status-msg').textContent =
-                        'could not load flowers: ' + err.message;
+                    document.getElementById('status-msg').textContent = 'could not load flowers: ' + err.message;
                 });
         }
 
