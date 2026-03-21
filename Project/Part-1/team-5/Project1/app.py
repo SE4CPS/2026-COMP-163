@@ -19,7 +19,7 @@ def water_loss():
     cur = conn.cursor()
     cur.execute("""
                 UPDATE team5_flowers 
-                SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)), last_watered = CURRENT_DATE
+                SET water_level = water_level - (5 * (CURRENT_DATE - last_watered))
                 WHERE last_watered < CURRENT_DATE;
     """)
 
@@ -79,9 +79,8 @@ def add_flower():
     
     cur.execute("""
         UPDATE team5_flowers
-        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)),
-            last_watered < CURRENT_DATE
-        WHERE id = %s;
+        SET water_level = water_level - (5 * (CURRENT_DATE - last_watered))
+        WHERE id = %s AND last_watered < CURRENT_DATE;
     """, (new_id,))
 
     conn.commit()
