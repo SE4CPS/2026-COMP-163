@@ -16,9 +16,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS team8_flowers (
             flower_id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
-            last_watered DATE NOT NULL,
-            water_level INT NOT NULL,
-            min_water_required INT NOT NULL
+            last_watered DATE NOT NULL CHECK(last_watered <= CURRENT_DATE),
+            water_level INT NOT NULL CHECK(water_level >= 0),
+            min_water_required INT NOT NULL CHECK(min_water_required >= 0)
 
         );
     """)

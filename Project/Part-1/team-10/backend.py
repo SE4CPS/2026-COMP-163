@@ -33,17 +33,25 @@ def select_flower(id=None):
     try:
         if id is None:
             cur.execute("""
-                SELECT id, name, last_watered, water_level, min_water_required
-                FROM team10_flowers ORDER BY id;
+                SELECT id, name, last_watered, water_level, min_water_required, current_water_level
+                FROM v_team10_flowers ORDER BY id;
             """)
             rows = cur.fetchall()
-            return [{"id": r[0], "name": r[1], "last_watered": r[2].strftime("%Y-%m-%d"), "water_level": r[3], "min_water_required": r[4], "needs_watering": r[3] < r[4]} for r in rows]
+            return [{
+                "id": r[0],
+                "name": r[1],
+                "last_watered": r[2].strftime("%Y-%m-%d"), 
+                "water_level": r[3],
+                "min_water_required": r[4],
+                "current_water_level": r[5],
+                "needs_watering": r[5] < r[4]
+            } for r in rows]
         else:
-            cur.execute("SELECT id, name, last_watered, water_level, min_water_required FROM team10_flowers WHERE id = %s;", (id,))
+            cur.execute("SELECT id, name, last_watered, water_level, min_water_required, current_water_level FROM v_team10_flowers WHERE id = %s;", (id,))
             row = cur.fetchone()
             if not row:
                 return None
-            return {"id": row[0], "name": row[1], "last_watered": row[2].strftime("%Y-%m-%d"), "water_level": row[3], "min_water_required": row[4], "needs_watering": row[3] < row[4]}
+            return {"id": row[0], "name": row[1], "last_watered": row[2].strftime("%Y-%m-%d"), "water_level": row[3], "min_water_required": row[4], "current_water_level": row[5], "needs_watering": row[5] < row[4]}
     finally:
         cur.close()
         conn.close()
@@ -83,10 +91,12 @@ def water_flower(id, amount):
     cur = conn.cursor()
     try:
         cur.execute("""
-            UPDATE team10_flowers
-            SET water_level = water_level + %s,
-                last_watered = CURRENT_DATE
-            WHERE id = %s;
+            UPDATE team10_flowers AS t
+            SET water_level = v.current_water_level + %s,
+                    last_watered = CURRENT_DATE
+            FROM v_team10_flowers AS v
+            WHERE t.id = v.id
+            AND t.id = %s;
         """, (amount, id))
         conn.commit()
         return True

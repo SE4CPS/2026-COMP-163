@@ -18,28 +18,28 @@ def get_db_connection():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM team10_flowers;")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM v_team10_flowers;")  # Placeholder for SELECT query
     flowers = cur.fetchall()
     cur.close()
     conn.close()
     
     return jsonify([{
         "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-        "water_level": f[3], "needs_watering": f[3] < f[4]
+        "water_level": f[3], "current_water_level": f[5], "needs_watering": f[5] < f[4]
     } for f in flowers])
 
 @app.route('/flowers/needs_watering', methods=['GET'])
 def get_flowers_needing_water():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM team10_flower WHERE water_level < min_water_required;")  # Placeholder for SELECT query
+    cur.execute("SELECT * FROM v_team10_flowers WHERE water_level < current_water_level;")  # Placeholder for SELECT query
     flowers = cur.fetchall()
     cur.close()
     conn.close()
 
     return jsonify([{
         "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-        "water_level": f[3], "needs_watering": f[3] < f[4]
+        "water_level": f[3], "current_water_level": f[5], "needs_watering": f[5] < f[4]
     } for f in flowers])
 
 # Add a flower

@@ -84,19 +84,31 @@ def delete_flower(id):
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})
 
-# Water a Flower (watering algorithm)
-@app.route('/flowers/<int:id>/water', methods=['PUT'])
+# Simulates a flowers daily loss
+#@app.route('/flowers/<int:id>/water_loss', methods=['PUT'])
+#def daily_loss(id):
+#    conn = get_db_connection()
+#    cur = conn.cursor()
+#    cur.execute("UPDATE team5_flowers SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)), last_watered = CURRENT_DATE WHERE id = %s", 
+#                (id,))
+#    conn.commit()
+#    cur.close()
+#    conn.close()
+#    return jsonify({"message": "Flower has lost water!"})
+
+@app.route('/flowers/<int:id>/water_flower', methods=['PUT'])
 def water_flower(id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE team5_flowers SET water_level = water_level - (5 * (CURRENT_DATE - last_watered)), last_watered = CURRENT_DATE WHERE id = %s", 
+    cur.execute("UPDATE team5_flowers SET water_level = water_level + 5, last_watered = CURRENT_DATE WHERE id = %s",
                 (id,))
+    
     conn.commit()
     cur.close()
     conn.close()
     return jsonify({"message": "Flower has been watered!"})
 
-# # Use this algorithm provided
+# Use this algorithm provided
     # UPDATE teamX_flowers
     # SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
 # use PUT methods ???

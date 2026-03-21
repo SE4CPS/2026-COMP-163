@@ -40,15 +40,18 @@ Needs delete button
         <label>Flower name</label>
         <input name="name" placeholder="e.g., Azalea" required /> <br>
         <label>Last watered</label>
-        <input name="last_watered" placeholder = "e.g., 2026-03-13" required/> <br>
+        <input name="last_watered" placeholder = "Y-M-D e.g., 2026-03-20" required/> <br>
         <label>Water level</label>
-        <input name="water_level" placeholder = "e.g., 10" required/> <br>
+        <input name="water_level" placeholder = "e.g., 20" required/> <br>
         <label>Minimum water required</label>
         <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
         <button type="submit">Add Flower</button>
-      </form>>
+      </form>
+    
+                            
 
     <script>
+        const today = new Date().toISOString().split("T")[0];
         fetch('/team8_flowers')
             .then(response => response.json())
             .then(data => {
@@ -88,10 +91,18 @@ Needs delete button
                         <td>
                             <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.flower_id}">                                <input type="hidden" name="id" value="${flower.flower_id}">
                                 <input type="hidden" name="id" value="${flower.flower_id}">
-                                <input name="name" value="${flower.name}">
-                                <input name="last_watered" value="${flower.last_watered}">
-                                <input name="water_level" value="${flower.water_level}">
-                                <input name="min_water_required" value="${flower.min_water_required}">
+                                <input name="name" 
+                                    value="${flower.name}"
+                                    maxlength="100" required>
+                                <input type="date" name="last_watered"
+                                    value="${flower.last_watered}"
+                                    max="${today}" required>
+                                <input type="number" name="water_level"
+                                    value="${flower.water_level}"
+                                    min="0" required>
+                                <input type="number" name="min_water_required"
+                                    value="${flower.min_water_required}"
+                                    min="0" required>
                                 <button type="submit">Update</button>
                             </form>
                         </td>

@@ -18,7 +18,8 @@ PAGE = """
     .card { border:1px solid #ddd; padding:12px; border-radius:8px; margin-bottom:16px; }
     input { padding:6px; }
     button { padding:6px 10px; cursor:pointer; }
-    .needs-water { background-color: #fff3cd; }
+    .needs-water { background-color: #ffcccc; }
+    .is-ok { background-color: #ccffcc; }
   </style>
 </head>
 <body>
@@ -65,7 +66,7 @@ PAGE = """
     </thead>
     <tbody>
       {% for r in rows %}
-      <tr {% if r.water_level < r.min_water_required %}class="needs-water"{% endif %}>
+      <tr class="{% if r.water_level < r.min_water_required %}needs-water{% else %}is-ok{% endif %}">
         <td>{{ r.id }}</td>
         <td>{{ r.name }}</td>
         <td>{{ r.color }}</td>
