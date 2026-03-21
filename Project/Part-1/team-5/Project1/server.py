@@ -10,7 +10,7 @@ admin.init_db()
 admin.seed_data()
 
 # calculates water loss once when server starts
-water_loss()
+# water_loss()
 
 @app.route('/')
 def flowers_app():
