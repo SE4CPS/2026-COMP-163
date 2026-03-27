@@ -2,13 +2,11 @@ import psycopg2
 import random
 import time
 from contextlib import contextmanager
+import os
+from dotenv import load_dotenv
 
-DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
-)
-
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # =========================================================
 # CONNECTION
@@ -129,7 +127,7 @@ def init_db():
                 description TEXT,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 FOREIGN KEY (user_id) REFERENCES AppUser(id) ON DELETE CASCADE,
-                reminder_time TIMESTAMPTZ;
+                reminder_time TIMESTAMPTZ
             );
         """, label="Create Task")
 
