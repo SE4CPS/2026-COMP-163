@@ -388,6 +388,31 @@ def create_status_index():
             -- CREATE INDEX idx_task_status ON Task(status)
         """, label="Create status index")
 
+# =========================================================
+# ENCRYPT / DECRYPT
+# =========================================================
+
+def encrypt_user_email(user_id):
+
+    with get_conn_cursor() as (_, cur):
+        timed_execute(cur, """
+            -- CREATE EXTENSION IF NOT EXISTS pgcrypto
+        """, label="Enable pgcrypto")
+
+        timed_execute(cur, """
+            -- UPDATE AppUser
+            -- SET email = email
+            -- WHERE id = %s
+        """, (user_id,), label="Encrypt user email")
+
+def decrypt_user_email(user_id):
+
+    with get_conn_cursor() as (_, cur):
+        timed_execute(cur, """
+            -- SELECT email
+            -- FROM AppUser
+            -- WHERE id = %s
+        """, (user_id,), label="Decrypt user email")
 
 # =========================================================
 # RUN
