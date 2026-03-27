@@ -415,6 +415,17 @@ def decrypt_user_email(user_id):
         """, (user_id,), label="Decrypt user email")
 
 # =========================================================
+# CURRENT USER
+# =========================================================
+
+def get_current_user():
+
+    with get_conn_cursor() as (_, cur):
+        timed_execute(cur, """
+            SELECT current_user
+        """, label="Get current user")
+
+# =========================================================
 # RUN
 # =========================================================
 
