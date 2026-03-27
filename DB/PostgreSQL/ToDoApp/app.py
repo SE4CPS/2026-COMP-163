@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
+ENC_KEY = os.getenv("ENC_KEY")
 
 # =========================================================
 # CONNECTION
@@ -75,33 +76,8 @@ def print_table(rows, headers=None):
         print("No results.")
         return
 
-    rows = [list(row) for row in rows]
-
-    if headers is None:
-        headers = [f"col{i+1}" for i in range(len(rows[0]))]
-
-    col_widths = []
-    for i in range(len(headers)):
-        max_width = len(str(headers[i]))
-        for row in rows:
-            max_width = max(max_width, len(str(row[i])))
-        col_widths.append(max_width)
-
-    header_row = " | ".join(
-        str(headers[i]).ljust(col_widths[i]) for i in range(len(headers))
-    )
-    separator = "-+-".join("-" * col_widths[i] for i in range(len(headers)))
-
-    print(header_row)
-    print(separator)
-
     for row in rows:
-        print(
-            " | ".join(
-                str(row[i]).ljust(col_widths[i]) for i in range(len(row))
-            )
-        )
-
+        print(row)
 
 # =========================================================
 # INIT + SEED
@@ -139,13 +115,12 @@ def seed_data():
 
     with get_conn_cursor() as (_, cur):
         timed_execute(cur, """
-            -- INSERT USERS
+            INSERT INTO AppUser (name, email) VALUES ('Alice', 'alice@email.com'),('Bob', 'bob@email.com');
         """, label="Insert users")
 
-        timed_execute(cur, """
-            -- INSERT TASKS
-        """, label="Insert tasks")
-
+        # timed_execute(cur, """
+        #     -- INSERT TASKS
+        # """, label="Insert tasks")
 
 # =========================================================
 # RANDOM DATA GENERATOR
@@ -204,7 +179,7 @@ def create_user(username):
 def get_all_users():
     with get_conn_cursor() as (_, cur):
         executed = timed_execute(cur, """
-            -- SELECT * FROM AppUser
+            SELECT * FROM AppUser;
         """, label="Get all users")
 
         if not executed:
@@ -394,14 +369,12 @@ def encrypt_user_email(user_id):
 
     with get_conn_cursor() as (_, cur):
         timed_execute(cur, """
-            -- CREATE EXTENSION IF NOT EXISTS pgcrypto
+            CREATE EXTENSION IF NOT EXISTS pgcrypto
         """, label="Enable pgcrypto")
 
         timed_execute(cur, """
-            -- UPDATE AppUser
-            -- SET email = email
-            -- WHERE id = %s
-        """, (user_id,), label="Encrypt user email")
+            UPDATE AppUser SET email = pgp_sym_encrypt(email,ENC_KEY);
+        """, label="Encrypt user email")
 
 def decrypt_user_email(user_id):
 
@@ -429,7 +402,7 @@ def get_current_user():
 
 if __name__ == "__main__":
     init_db()
-    seed_data()
+    # seed_data()
 
     # generate_random_tasks(10000)
     # create_status_index()
@@ -438,5 +411,8 @@ if __name__ == "__main__":
     # get_all_tasks()
     # get_tasks_by_user(1)
     # get_completed_tasks()
+    # encrypt_user_email(0)
+
+    get_all_users()
 
     print("App ready for implementation...")
