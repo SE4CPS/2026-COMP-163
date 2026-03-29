@@ -1,5 +1,5 @@
 import psycopg2
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
@@ -13,6 +13,9 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
 # Get all flowers
+@app.route('/')
+def home():
+    return render_template('flowers.html')
 @app.route('/flowers', methods=['GET'])
 def get_flowers():
     conn = get_db_connection()
