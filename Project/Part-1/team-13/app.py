@@ -5,11 +5,8 @@ app = Flask(__name__)
 
 # Database connection details
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-
-    "neondb?sslmode=require"
+     "postgresql://neondb_owner:npg_oXdaBET9wJn6@ep-winter-thunder-akz1j036-pooler.c-3.us-west-2.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def get_db_connection():
