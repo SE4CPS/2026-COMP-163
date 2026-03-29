@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flower Watering Status</title>
+    <style>
+        .needs-water { background-color: #fc8383; color: red; font-weight: bold; }
+        .sufficient  { background-color: #90EE90; color: green; }
+    </style>
+</head>
+<body>
+    <h2>Flower Watering Status</h2>
+
+    <!-- Add Flower Table -->
+    <h3>Add Flower</h3>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Last Watered</th>
+            <th>Water Level</th>
+            <th>Min Water Required</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <td><input type="text" id="input-name" placeholder="e.g. Rose"></td>
+            <td><input type="date" id="input-date"></td>
+            <td><input type="number" id="input-level" min="0" placeholder="e.g. 20"></td>
+            <td><input type="number" id="input-min" min="0" placeholder="e.g. 5"></td>
+            <td><button onclick="addFlower()">Add</button></td>
+        </tr>
+    </table>
+
+    <br>
+
+    <!-- Filter Buttons -->
+    <button onclick="loadFlowers()">Show All</button>
+    <button onclick="showThirsty()">Show Only Thirsty</button>
+
+    <br><br>
+
+    <!-- Flower Table -->
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Last Watered</th>
+            <th>Water Level</th>
+            <th>Needs Watering</th>
+            <th>Actions</th>
+        </tr>
+        <tbody id="flower-data"></tbody>
+    </table>
+
+    <script>
+        function loadFlowers() {
+            fetch('/flowers')
+                .then(response => response.json())
+                .then(data => buildRows(data));
+        }
+
+        function showThirsty() {
+            fetch('/flowers/needs_watering')
+                .then(response => response.json())
+                .then(data => buildRows(data));
+        }
+
+        function buildRows(data) {
+            let rows = "";
+            data.forEach(flower => {
+                const rowClass   = flower.needs_watering ? "needs-water" : "sufficient";
+                const statusText = flower.needs_watering ? "Yes" : "No";
+
+                rows += `<tr class="${rowClass}">
+                    <td>${flower.name}</td>
+                    <td>${flower.last_watered}</td>
+                    <td>${flower.water_level} inches</td>
+                    <td>${statusText}</td>
+                    <td>
+                        <button onclick="waterFlower(${flower.id}, ${flower.water_level})">Water +5</button>
+                        <button onclick="deleteFlower(${flower.id})">Delete</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById("flower-data").innerHTML = rows;
+        }
+
+        function addFlower() {
+            const name  = document.getElementById("input-name").value;
+            const date  = document.getElementById("input-date").value;
+            const level = document.getElementById("input-level").value;
+            const min   = document.getElementById("input-min").value;
+
+            if (!name || !date || !level || !min) {
+                alert("Please fill in all fields");
+                return;
+            }
+
+            fetch('/flowers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name:               name,
+                    last_watered:       date,
+                    water_level:        parseInt(level),
+                    min_water_required: parseInt(min)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                loadFlowers();
+            });
+        }
+
+        function waterFlower(id, currentLevel) {
+            const today = new Date().toISOString().split('T')[0];
+
+            fetch('/flowers/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    last_watered: today,
+                    water_level:  currentLevel + 5
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                loadFlowers();
+            });
+        }
+
+        function deleteFlower(id) {
+            if (!confirm("Are you sure you want to delete this flower?")) return;
+
+            fetch('/flowers/' + id, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                loadFlowers();
+            });
+        }
+
+        loadFlowers();
+    </script>
+</body>
+</html>
