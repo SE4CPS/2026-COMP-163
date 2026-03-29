@@ -19,6 +19,7 @@
         fetch('/flowers')
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 let rows = "";
                 data.forEach(flower => {
                     rows += `<tr>
@@ -31,7 +32,7 @@
                 document.getElementById("flower-data").innerHTML = rows;
             })
             .catch(error => {
-                console.error("Error loading flower data:", error);
+                console.error("Error loading flowers:", error);
             });
     </script>
 </body>
