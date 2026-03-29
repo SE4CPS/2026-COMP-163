@@ -29,6 +29,9 @@
                     </tr>`;
                 });
                 document.getElementById("flower-data").innerHTML = rows;
+            })
+            .catch(error => {
+                console.error("Error loading flower data:", error);
             });
     </script>
 </body>
