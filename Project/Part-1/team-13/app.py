@@ -4,6 +4,9 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Database connection details
+DATABASE_URL = (
+    postgresql://neondb_owner:npg_oXdaBET9wJn6@ep-winter-thunder-akz1j036-pooler.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+)
 
 # Get all flowers
 @app.route('/flowers', methods=['GET'])
