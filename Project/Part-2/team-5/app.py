@@ -127,6 +127,32 @@ def water_flower(id):
     conn.close()
     return jsonify({"message": "Flower has been watered!"})
 
+app.route('/flowers/slow_query', methods=['GET'])
+def slow_query():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+                SELECT COUNT(*) FROM (
+                    SELECT f.id, f.name, f.last_watered, f.water_level, f.min_water_required,
+                        c.name AS customer_name, o.order_date
+                    FROM team5_flowers f
+                    CROSS JOIN team5_orders o ON f.id = o.flower_id
+                    CROSS JOIN team5_customers c ON o.customer_id = c.id
+                    WHERE flower = flower LIKE '_e' AND water_level < min_water_required
+                    ORDER BY o.order_date DESC
+                );
+    """)
+    results = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify([{
+        "id": r[0], "name": r[1], "last_watered": r[2].strftime("%Y-%m-%d"),
+        "water_level": r[3], "min_water_required": r[4],
+        "customer_name": r[5], "order_date": r[6].strftime("%Y-%m-%d") if r[6] else None
+    } for r in results])
+
+
 # Use this algorithm provided
     # UPDATE teamX_flowers
     # SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
