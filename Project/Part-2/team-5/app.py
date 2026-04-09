@@ -127,7 +127,7 @@ def water_flower(id):
     conn.close()
     return jsonify({"message": "Flower has been watered!"})
 
-app.route('/flowers/slow_query', methods=['GET'])
+@app.route('/flowers/slow_query', methods=['GET'])
 def slow_query():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -136,9 +136,9 @@ def slow_query():
                     SELECT f.id, f.name, f.last_watered, f.water_level, f.min_water_required,
                         c.name AS customer_name, o.order_date
                     FROM team5_flowers f
-                    CROSS JOIN team5_orders o ON f.id = o.flower_id
-                    CROSS JOIN team5_customers c ON o.customer_id = c.id
-                    WHERE flower = flower LIKE '_e' AND water_level < min_water_required
+                    CROSS JOIN (SELECT * FROM team5_orders
+                    CROSS JOIN team5_customers)
+                    WHERE name LIKE '_e' AND water_level < min_water_required
                     ORDER BY o.order_date DESC
                 );
     """)
