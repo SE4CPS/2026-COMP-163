@@ -58,6 +58,23 @@ def seed_data():
         """)
 
         cur.execute("""
+            INSERT INTO team5_customers (name, email)
+            SELECT
+                'Customer_' || g,
+                'customer_' || g || '@example.com'
+            FROM generate_series(1, 500) AS g;
+        """)
+
+        cur.execute("""
+            INSERT INTO team5_orders (customer_id, flower_id, order_date)
+            SELECT
+                (random() * 499 + 1)::INT,
+                (random() * 5 + 1)::INT,  -- adjust based on teamX_flowers
+                CURRENT_DATE - ((random() * 365)::INT)
+            FROM generate_series(1, 10000);
+        """)
+
+        cur.execute("""
             UPDATE team5_flowers 
             SET water_level = water_level - (5 * (CURRENT_DATE - last_watered))
             WHERE last_watered < CURRENT_DATE;
