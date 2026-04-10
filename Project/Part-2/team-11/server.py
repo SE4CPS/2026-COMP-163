@@ -7,7 +7,10 @@ def create_app():
     app = Flask(__name__)
 
     admin.init_db()
-    admin.seed_data()
+    admin.all_data()
+
+    admin.print_customers() # verify customers
+    admin.print_orders() # verify orders
 
     app.register_blueprint(frontend_bp)
     return app
