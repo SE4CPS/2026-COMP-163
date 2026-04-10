@@ -7,7 +7,7 @@ DATABASE_URL = (
 )
 
 def _get_conn():
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg2.connect(DATABASE_URL)   
 
 def init_db():
     conn = _get_conn()
