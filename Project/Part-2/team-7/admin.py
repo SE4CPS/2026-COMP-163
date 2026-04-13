@@ -20,6 +20,17 @@ def init_db():
             water_level INT NOT NULL CHECK (water_level >= 0),
             min_water_required INT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS team7_customers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE
+        );
+        CREATE TABLE IF NOT EXISTS team7_orders (
+            id SERIAL PRIMARY KEY,
+            customer_id INT REFERENCES team7_customers(id),
+            flower_id INT REFERENCES team7_flowers(id),
+            order_date DATE NOT NULL DEFAULT CURRENT_DATE
+        );
     """)
     conn.commit()
     cur.close()
