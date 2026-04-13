@@ -1,10 +1,3 @@
-<!-- 
- Needs flower text input logic
-Needs update text input logic 
-Needs water button
-Needs delete button 
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,23 +26,7 @@ Needs delete button
         </tr>
         <tbody id="flower-data"></tbody>
     </table>
-<!-- The fetch(...) function sends to the app.py routes as data=request.json -->
-<!-- ?Change '/flowers' -> '/team8_flowers' to line up with app.py's `get_flowers()`? -->
-    <h3>Add Flower</h3>
-      <form method="post" action="/team8_flowers/add">
-        <label>Flower name</label>
-        <input name="name" placeholder="e.g., Azalea" required /> <br>
-        <label>Last watered</label>
-        <input name="last_watered" placeholder = "Y-M-D e.g., 2026-03-20" required/> <br>
-        <label>Water level</label>
-        <input name="water_level" placeholder = "e.g., 20" required/> <br>
-        <label>Minimum water required</label>
-        <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
-        <button type="submit">Add Flower</button>
-      </form>
-    
-                            
-
+   
     <script>
         const today = new Date().toISOString().split("T")[0];
         fetch('/team8_flowers')
@@ -79,18 +56,18 @@ Needs delete button
                         <td>${flower.water_level} inches</td>
                         <td>${flower.needs_watering ? "Yes" : "No"}</td>
                         <td>
-                            <form style="display:inline;" method="post" action="/team8_flowers/delete/${flower.flower_id}">
+                            <form style="display:inline;" method="post" action="/team8_flowers/delete/${flower.id}">
                                 <button type="submit">Delete</button>
                             </form>
                         </td>
                         <td>
-                            <form style="display:inline;" method="post" action="/team8_flowers/water/${flower.flower_id}">
+                            <form style="display:inline;" method="post" action="/team8_flowers/water/${flower.id}">
                                 <button type="submit">Water</button>
                             </form>
                         </td>
                         <td>
-                            <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.flower_id}">                                <input type="hidden" name="id" value="${flower.flower_id}">
-                                <input type="hidden" name="id" value="${flower.flower_id}">
+                            <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.id}">                                <input type="hidden" name="id" value="${flower.flower_id}">
+                                <input type="hidden" name="id" value="${flower.id}">
                                 <input name="name" 
                                     value="${flower.name}"
                                     maxlength="100" required>
@@ -112,5 +89,43 @@ Needs delete button
             });
             
     </script>
+
+    <h4>Customer data</h4>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+        </tr>
+        <tbody id="customer-data"></tbody>
+    </table>
+
+     <script>
+        fetch('/team8_customers')
+            .then(response => response.json())
+            .then(data => {
+                let rows = "";
+                data.forEach(customer => {
+                    rows += `<tr style="border: 3px solid">
+                        <td>${customer.name}</td>
+                        <td>${customer.email}</td>
+                    </tr>`;           
+                });
+                document.getElementById("customer-data").innerHTML = rows;
+            });
+            
+    </script>
+
+     <h3>Add Flower</h3>
+      <form method="post" action="/team8_flowers/add">
+        <label>Flower name</label>
+        <input name="name" placeholder="e.g., Azalea" required /> <br>
+        <label>Last watered</label>
+        <input name="last_watered" placeholder = "Y-M-D e.g., 2026-03-20" required/> <br>
+        <label>Water level</label>
+        <input name="water_level" placeholder = "e.g., 20" required/> <br>
+        <label>Minimum water required</label>
+        <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
+        <button type="submit">Add Flower</button>
+      </form>
 </body>
 </html>

@@ -52,16 +52,29 @@ def get_columns():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT flower_id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") #FIXED: Changed `id` --> `flower_id`"
+    cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") #FIXED: Changed `id` --> `flower_id`"
     
     flowers = cur.fetchall()
     cur.close()
     conn.close()
     
     return jsonify([{
-        "flower_id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),#FIXED: Changed `id` --> `flower_id`
+        "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),#FIXED: Changed `id` --> `flower_id`
         "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
     } for f in flowers])
+
+@app.route('/team8_customers', methods=['GET'])
+def get_customers():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, email FROM team8_customers LIMIT 10;")
+    customers = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify([{
+        "id": c[0], "name": c[1], "email": c[2]
+    } for c in customers])
 
 #Get flowers needing water
 @app.route('/team8_flowers/needs_water', methods=['GET'])
