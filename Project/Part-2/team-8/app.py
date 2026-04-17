@@ -103,57 +103,28 @@ def fast_slow_query(flag):
     if flag == 1:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") 
+        cur.execute("EXPLAIN ANALYZE SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") 
     
-        flowers = cur.fetchall()
+        explain_analyze_info = cur.fetchall()
         cur.close()
         conn.close()
 
-
-        #FIX: This needs to jsonify a very specific query too. 
-        #???
-        #Projection of team8_flowers' columns + team8_orders' columns + team8_customers' columns.
         return jsonify([{
-            "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-            "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
-        } for f in flowers])
+            "1:": f[0], "2": f[1], "3": f[2]
+        } for f in explain_analyze_info])
     
     else:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") 
+        cur.execute("EXPLAIN ANALYZE SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") 
 
-        flowers = cur.fetchall()
+        explain_analyze_info = cur.fetchall()
         cur.close()
         conn.close()
 
         return jsonify([{
-            "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
-            "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
-        } for f in flowers])
-
-    
-    
-
-# #Fast query of the 3 merged tables. Optimize with indexes and efficient joins.
-# @app.route('/team8_flowers/slow_query', methods=['GET'])
-# def slow_query():
-#     conn = get_db_connection()
-#     cur = conn.cursor()
-#     #FIX: This needs to execute a specific query. 
-#     cur.execute("SELECT flower_id, name, last_watered, water_level, min_water_required FROM team8_flowers;")  #FIXED: Changed `id` --> `flower_id` and `lastwatered` --> `last_watered`
-#     flowers = cur.fetchall()
-#     cur.close()
-#     conn.close()
-
-#     #FIX: This needs to jsonify a very specific query too. 
-#     #???
-#     #Projection of team8_flowers' columns + team8_orders' columns + team8_customers' columns.
-#     return jsonify([{
-#         "flower_id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),  
-#         "water_level": f[3], "needs_watering": f[3] < f[4]
-#     } for f in flowers])
-# ===FAST/SLOW QUERY ROUTES===
+            "1:": f[0], "2": f[1], "3": f[2]
+        } for f in explain_analyze_info])
 
 #==============SQL QUERIES end======================================
 
