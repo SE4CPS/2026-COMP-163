@@ -66,7 +66,8 @@
                             </form>
                         </td>
                         <td>
-                            <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.id}">                                <input type="hidden" name="id" value="${flower.flower_id}">
+                            <form style="display:inline;" method="post" action="/team8_flowers/update/${flower.id}">                                
+                                <!-- <input type="hidden" name="id" value="${flower.flower_id}"> -->
                                 <input type="hidden" name="id" value="${flower.id}">
                                 <input name="name" 
                                     value="${flower.name}"
@@ -126,6 +127,23 @@
         <label>Minimum water required</label>
         <input name="min_water_required" placeholder = "e.g., 7" required/> <br>
         <button type="submit">Add Flower</button>
-      </form>
+      </form>       
+
+      <!-- Fast/Slow button implementation -->
+      <div class="query-buttons">
+      
+        <h3>Fast Query</h3>
+        <form method="get" action="/team8_flowers/fast-slow_query/1">
+          <button type="submit" class="btn fast-btn">Add Flower</button>
+        </form>
+    
+        <h3>Slow Query</h3>
+        <form method="get" action="/team8_flowers/fast-slow_query/0">
+          <button type="submit" class="btn slow-btn">Add Flower</button>
+        </form>
+    
+      </div>
+
 </body>
 </html>
+

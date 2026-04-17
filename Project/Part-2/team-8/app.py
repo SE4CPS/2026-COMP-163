@@ -19,25 +19,7 @@ def create_app():
     app = Flask(__name__, template_folder='template')
     admin.init_db()
     admin.seed_data()
-    #===========SLOWEST QUERY CHALLENGE HERE===========
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-    EXPLAIN ANALYZE
-    run your query
     
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name = 'team8_flowers';
-    """)
-
-    #Instead of `EXPLAIN ANALYZE` -> `>>>import time >>>start = time.perf_counter()>>>end = time.perf_counter()` 
-    flowers = cur.fetchall()
-    cur.close()
-    conn.close()
-    print(flowers)
-    #===========SLOWEST QUERY CHALLENGE ENDS HERE===========
     return app
 
 app = create_app()
@@ -111,7 +93,68 @@ def get_flowers_needing_water():
         "water_level": f[3], "needs_watering": f[3] < f[4]
     } for f in flowers])
 
-#FIX: 
+# ===FAST/SLOW QUERY ROUTES===
+
+#Fast query of the 3 merged tables. Optimize with indexes and efficient joins.
+@app.route('/team8_flowers/fast-slow_query/<int:flag>', methods=['GET'])
+def fast_slow_query(flag):
+    
+    #if flag == 1, execute the fast query. else flag == 0, execute the slow query.
+    if flag == 1:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") 
+    
+        flowers = cur.fetchall()
+        cur.close()
+        conn.close()
+
+
+        #FIX: This needs to jsonify a very specific query too. 
+        #???
+        #Projection of team8_flowers' columns + team8_orders' columns + team8_customers' columns.
+        return jsonify([{
+            "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
+            "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
+        } for f in flowers])
+    
+    else:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") 
+
+        flowers = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        return jsonify([{
+            "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
+            "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
+        } for f in flowers])
+
+    
+    
+
+# #Fast query of the 3 merged tables. Optimize with indexes and efficient joins.
+# @app.route('/team8_flowers/slow_query', methods=['GET'])
+# def slow_query():
+#     conn = get_db_connection()
+#     cur = conn.cursor()
+#     #FIX: This needs to execute a specific query. 
+#     cur.execute("SELECT flower_id, name, last_watered, water_level, min_water_required FROM team8_flowers;")  #FIXED: Changed `id` --> `flower_id` and `lastwatered` --> `last_watered`
+#     flowers = cur.fetchall()
+#     cur.close()
+#     conn.close()
+
+#     #FIX: This needs to jsonify a very specific query too. 
+#     #???
+#     #Projection of team8_flowers' columns + team8_orders' columns + team8_customers' columns.
+#     return jsonify([{
+#         "flower_id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),  
+#         "water_level": f[3], "needs_watering": f[3] < f[4]
+#     } for f in flowers])
+# ===FAST/SLOW QUERY ROUTES===
+
 #==============SQL QUERIES end======================================
 
 

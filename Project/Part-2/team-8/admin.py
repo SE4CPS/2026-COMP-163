@@ -43,7 +43,6 @@ def seed_data():
     cur.execute("SELECT COUNT(*) FROM team8_orders;")
     count = cur.fetchone()[0]
 
-
     if count == 0:
         cur.execute("""
             INSERT INTO team8_flowers (name, last_watered, water_level, min_water_required)
