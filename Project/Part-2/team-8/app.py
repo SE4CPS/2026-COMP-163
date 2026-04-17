@@ -19,6 +19,25 @@ def create_app():
     app = Flask(__name__, template_folder='template')
     admin.init_db()
     admin.seed_data()
+    #===========SLOWEST QUERY CHALLENGE HERE===========
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+    EXPLAIN ANALYZE
+    run your query
+    
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'team8_flowers';
+    """)
+
+    #Instead of `EXPLAIN ANALYZE` -> `>>>import time >>>start = time.perf_counter()>>>end = time.perf_counter()` 
+    flowers = cur.fetchall()
+    cur.close()
+    conn.close()
+    print(flowers)
+    #===========SLOWEST QUERY CHALLENGE ENDS HERE===========
     return app
 
 app = create_app()
@@ -45,7 +64,7 @@ def get_columns():
     cur.close()
     conn.close()
     return flowers
-#==============SQL QUERIES==============
+#==============SQL QUERIES======================================
 
 # Get all flowers
 @app.route('/team8_flowers', methods=['GET'])
@@ -91,7 +110,10 @@ def get_flowers_needing_water():
         "flower_id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),  
         "water_level": f[3], "needs_watering": f[3] < f[4]
     } for f in flowers])
-    
+
+#FIX: 
+#==============SQL QUERIES end======================================
+
 
 # Add a flower
 @app.route('/team8_flowers/add', methods=['POST'])

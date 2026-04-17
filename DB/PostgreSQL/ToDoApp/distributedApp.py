@@ -511,7 +511,7 @@ def get_current_user_all():
 
 if __name__ == "__main__":
     init_db_all()
-    # seed_data()
+    seed_data()
     # generate_random_tasks(1000)
     # create_status_index_all()
     get_all_users()

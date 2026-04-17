@@ -221,7 +221,7 @@ def get_count_completed_tasks():
         elapsed_ms = timed_postgres_execute(
             cur,
             """
-            count how many tasks have status equal to completed
+            SELECT COUNT(*) FROM Task WHERE status = 'completed';
             """,
             label="Postgres COUNT completed"
         )
@@ -239,6 +239,7 @@ def get_sum_estimated_hours_completed():
         elapsed_ms = timed_postgres_execute(
             cur,
             """
+            SELECT SUM(estimated_hours) FROM Task WHERE status = 'completed';
             look only at completed tasks then add up all estimated_hours values
             """,
             label="Postgres SUM completed hours"
@@ -257,6 +258,7 @@ def get_avg_hours_per_status():
         elapsed_ms = timed_postgres_execute(
             cur,
             """
+            SELECT status, ROUND(AVG(estimated_hours)) FROM task GROUP BY status; 
             group tasks by status then find the average estimated_hours value for each group
             """,
             label="Postgres AVG hours per status"
@@ -275,6 +277,7 @@ def get_count_tasks_per_priority():
         elapsed_ms = timed_postgres_execute(
             cur,
             """
+            SELECT COUNT(*) FROM TaskGROUP BY priority;
             group tasks by priority then count how many tasks are in each priority group
             """,
             label="Postgres COUNT per priority"
