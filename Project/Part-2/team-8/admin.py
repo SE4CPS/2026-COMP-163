@@ -1,9 +1,9 @@
 import psycopg2
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_nTU5Yia7xSdB@" #"postgresql://neondb_owner:npg_M5sVheSzQLv4@"
+    "ep-late-bird-amz6lx5v-pooler.c-5.us-east-1.aws.neon.tech/" #"ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require" #"neondb?sslmode=require"
 )
 
 def _get_conn():
