@@ -19,7 +19,7 @@ def create_app():
     app = Flask(__name__, template_folder='template')
     admin.init_db()
     admin.seed_data()
-    
+    admin.create_indexes()
     return app
 
 app = create_app()
