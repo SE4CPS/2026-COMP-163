@@ -26,6 +26,36 @@ app = create_app()
 app.json.sort_keys = False #Done so JSONs of SQL Queries are in original order (not auto ordered alphanumerically)
 app.secret_key = "team8_secret_key"
 
+SLOW_SQL = """
+SELECT *
+FROM team8_orders o, team8_customers c, team8_flowers f
+WHERE CAST(o.customer_id AS TEXT) = CAST(c.id AS TEXT)
+  AND CAST(o.flower_id   AS TEXT) = CAST(f.id AS TEXT)
+  AND LOWER(c.email) LIKE '%customer%'
+  AND LOWER(c.name)  LIKE '%customer%'
+  AND UPPER(f.name)  LIKE '%O%'
+  AND md5(c.name || c.email || f.name || o.order_date::text) LIKE '%a%'
+ORDER BY md5(c.email || c.name || f.name || o.order_date::text),
+         LOWER(c.name),
+         UPPER(f.name),
+         md5(o.order_date::text);
+""".strip()
+ 
+FAST_SQL = """
+SELECT o.id AS order_id,
+       o.order_date,
+       c.name  AS customer_name,
+       c.email AS customer_email,
+       f.name  AS flower_name
+FROM team8_orders   o
+JOIN team8_customers c ON o.customer_id = c.id
+JOIN team8_flowers   f ON o.flower_id   = f.id
+WHERE f.name IN ('Rose', 'Poppy')
+  AND c.email LIKE 'customer_%'
+ORDER BY o.id
+LIMIT 100 OFFSET 0;
+""".strip()
+
 #Starting page 
 @app.route('/')
 def index():
