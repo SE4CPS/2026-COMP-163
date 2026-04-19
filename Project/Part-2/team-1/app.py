@@ -2,6 +2,7 @@
 import psycopg2
 from flask import Flask, request, jsonify, render_template
 import os
+import time
 
 app = Flask(__name__)
 
@@ -23,7 +24,6 @@ def get_db_connection():
 def home():
     return render_template('flowers.html')
 
-# Get all flowers
 # Get all flowers
 @app.route('/flowers', methods=['GET'])
 def get_flowers():
@@ -148,5 +148,60 @@ def delete_flower(id):
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})
 
+# slow query
+@app.route('/slow-query', methods=['GET'])
+def slow_query():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    query = """
+        SELECT *
+        FROM team1_orders o
+        JOIN team1_customers c ON o.customer_id = c.id
+        JOIN team1_flowers f ON o.flower_id = f.id
+        WHERE LOWER(f.name) LIKE '%rose%'
+        ORDER BY f.name
+    """
+
+    start = time.time()
+    cur.execute(query)
+    cur.fetchall()  
+    end = time.time()
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "query": query,
+        "execution_time": round(end - start, 2)
+    })
+    
+# fast query
+@app.route('/fast-query', methods=['GET'])
+def fast_query():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    query = """
+        SELECT f.name, c.name
+        FROM team1_orders o
+        JOIN team1_customers c ON o.customer_id = c.id
+        JOIN team1_flowers f ON o.flower_id = f.id
+        WHERE f.name LIKE 'Rose%'
+        LIMIT 50
+    """
+
+    start = time.time()
+    cur.execute(query)
+    cur.fetchall()
+    end = time.time()
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "query": query,
+        "execution_time": round(end - start, 2)
+    })
 if __name__ == '__main__':
     app.run(debug=True)
