@@ -56,3 +56,38 @@ def seed_data():
     cur.close()
     conn.close()
 
+def generate_random_data():
+    conn = _get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+                
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def slow_query():
+    conn = _get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+                
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def fast_query():
+    conn = _get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+                
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
