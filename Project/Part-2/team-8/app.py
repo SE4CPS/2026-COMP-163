@@ -2,9 +2,7 @@ import psycopg2
 from flask import Flask, request, jsonify, redirect, url_for, flash, render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 import admin
-#NEW: added water() function
-#NEW: added DATABASE_URL and get_db_connection()
-#NEW: import flask.redict and flask.url_for because it is used for water()
+import time
 
 # Database connection details
 DATABASE_URL = (
@@ -103,38 +101,37 @@ def fast_slow_query(flag):
     if flag == 1:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;") 
-    
+        
+        start_time = time.time()
+        cur.execute("SELECT * FROM team8_flowers;")
+        
         explain_analyze_info = cur.fetchall()
-        print(explain_analyze_info)
+        
+        end_time = time.time()
+        total_time = round(end_time - start_time,4)
         cur.close()
         conn.close()
 
-
         return jsonify({
-            "execution_time": explain_analyze_info[0],
-            "plan": explain_analyze_info[1]
+            "execution_time": total_time
         })
     
     else:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;") 
-
+        start_time = time.time()
+        cur.execute("SELECT * FROM team8_flowers CROSS JOIN team8_orders;")
+        
         explain_analyze_info = cur.fetchall()
-        cur.close()
-        conn.close()
-
-
-        explain_analyze_info = cur.fetchall()
-        print(explain_analyze_info)
+        
+        end_time = time.time()
+        total_time = round(end_time - start_time,4)
         cur.close()
         conn.close()
 
 
         return jsonify({
-            "execution_time": explain_analyze_info[0],
-            "plan": explain_analyze_info[1]
+            "execution_time": total_time
         })
 
 #==============SQL QUERIES end======================================

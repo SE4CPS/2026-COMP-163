@@ -155,7 +155,6 @@
             fetch(`/team8_flowers/fast-slow_query/${flag}`)
                 .then(response => response.json())
                 .then(data => {
-
                     let rows = "";
 
                     // Execution time row
@@ -165,15 +164,6 @@
                             <td>${data.execution_time}</td>
                         </tr>
                     `;
-
-                    // Query plan rows
-                    data.plan.forEach(line => {
-                        rows += `
-                            <tr>
-                                <td>${line}</td>
-                            </tr>
-                        `;
-                    });
 
                     document.getElementById("fast-slow-query-data").innerHTML = rows;
                 });
