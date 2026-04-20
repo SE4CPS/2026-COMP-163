@@ -15,27 +15,28 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        DROP TABLE IF EXISTS team4_flowers;
-        CREATE TABLE team4_flowers (
+        CREATE TABLE IF NOT EXISTS team4_flowers (
             flower_id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             last_watered TIMESTAMP NOT NULL,
             water_level INT NOT NULL,
             min_water_required INT NOT NULL
         );
-                
-        DROP TABLE IF EXISTS team4_customers;
-        CREATE TABLE team4_customers (
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team4_customers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100),
             email VARCHAR(100)
         );
+    """)
 
-        DROP TABLE IF EXISTS team4_orders;
-        CREATE TABLE team4_orders (
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team4_orders (
             id SERIAL PRIMARY KEY,
             customer_id INT REFERENCES team4_customers(id),
-            flower_id INT REFERENCES team4_flowers(id),
+            flower_id INT REFERENCES team4_flowers(flower_id),
             order_date DATE
         );
     """)
@@ -61,8 +62,8 @@ def seed_data():
                 
         INSERT INTO team4_orders (customer_id, flower_id, order_date)
         SELECT
-            (random() * 499 + 1)::INT,
-            (random() * 99 + 1)::INT,  -- adjust based on teamX_flowers
+            (SELECT id FROM team4_customers ORDER BY random() LIMIT 1),
+            (SELECT flower_id FROM team4_flowers ORDER BY random() LIMIT 1),
             CURRENT_DATE - ((random() * 365)::INT)
         FROM generate_series(1, 10000);
     """)
