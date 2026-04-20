@@ -61,7 +61,20 @@ def generate_random_data():
     cur = conn.cursor()
 
     cur.execute("""
+        INSERT INTO team7_customers (name, email)
+        SELECT
+            'Customer_' || g,
+            'customer_' || g || '@example.com'
+        FROM generate_series(1, 500) AS g
+        ON CONFLICT (name, email) DO NOTHING;
                 
+        INSERT INTO team7_orders (customer_id, flower_id, order_date)
+        SELECT
+            (random() * 499 + 1)::INT,
+            (random() * 99 + 1)::INT,  -- adjust based on teamX_flowers
+            CURRENT_DATE - ((random() * 365)::INT)
+        FROM generate_series(1, 10000)
+        ON CONFLICT (order_date) DO NOTHING;
     """)
 
     conn.commit()
