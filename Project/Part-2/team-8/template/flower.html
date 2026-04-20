@@ -132,23 +132,54 @@
       <!-- Fast/Slow button implementation -->
       <div class="query-buttons">
       
-      <button type="button" onclick="runQuery(1)" class="btn fast-btn">
+      <button type="button" onclick="runQuery(1)">
         Fast Query
       </button>
 
-      <button type="button" onclick="runQuery(0)" class="btn slow-btn">
+      <button type="button" onclick="runQuery(0)">
         Slow Query
       </button>
+
+      <table border="1">
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="fast-slow-query-data"></tbody>
+      </table>
     
       <script>
         function runQuery(flag) {
-        fetch(`/team8_flowers/fast-slow_query/${flag}`)
-        .then(res => res.json())
-        .then(data => {
-            console.log("Result:", data);
-        });
+            fetch(`/team8_flowers/fast-slow_query/${flag}`)
+                .then(response => response.json())
+                .then(data => {
+
+                    let rows = "";
+
+                    // Execution time row
+                    rows += `
+                        <tr>
+                            <td>Execution Time</td>
+                            <td>${data.execution_time}</td>
+                        </tr>
+                    `;
+
+                    // Query plan rows
+                    data.plan.forEach(line => {
+                        rows += `
+                            <tr>
+                                <td>${line}</td>
+                            </tr>
+                        `;
+                    });
+
+                    document.getElementById("fast-slow-query-data").innerHTML = rows;
+                });
         }
       </script>
+      
 
 </body>
 </html>
