@@ -1,13 +1,10 @@
 import psycopg2
-
-# Database connection details & sets up initial SQL database 
-
+# Database connection details & sets up initial SQL database
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_ngISkrv4PXx7@"
-    "ep-green-grass-amgmprku-pooler.c-5.us-east-1.aws.neon.tech/"
-    "neondb?sslmode=require&channel_binding=require"
+"postgresql://neondb_owner:npg_ngISkrv4PXx7@"
+"ep-green-grass-amgmprku-pooler.c-5.us-east-1.aws.neon.tech/"
+"neondb?sslmode=require&channel_binding=require"
 )
-
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)
 
@@ -23,7 +20,6 @@ def init_db():
             min_water_required INT NOT NULL
         );
     """)
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team4_customers (
             id SERIAL PRIMARY KEY,
@@ -31,14 +27,29 @@ def init_db():
             email VARCHAR(100)
         );
     """)
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team4_orders (
             id SERIAL PRIMARY KEY,
             customer_id INT REFERENCES team4_customers(id),
             flower_id INT REFERENCES team4_flowers(flower_id),
             order_date DATE
-        );
+            );
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_orders_customer_id
+        ON team4_orders(customer_id);
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_orders_flower_id
+        ON team4_orders(flower_id);
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_flowers_name
+        ON team4_flowers(name);
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_customers_name
+        ON team4_customers(name);
     """)
     conn.commit()
     cur.close()
@@ -59,7 +70,7 @@ def seed_data():
             'Customer_' || g,
             'customer_' || g || '@example.com'
         FROM generate_series(1, 500) AS g;
-                
+        
         INSERT INTO team4_orders (customer_id, flower_id, order_date)
         SELECT
             (SELECT id FROM team4_customers ORDER BY random() LIMIT 1),
