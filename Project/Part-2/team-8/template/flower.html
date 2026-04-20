@@ -124,6 +124,9 @@
         </thead>
         <tbody id="fast-slow-query-data"></tbody>
       </table>
+
+      <h4>Query Used:</h4>
+      <pre id="query-display" style="background:#f4f4f4; padding:10px;"></pre>
     
       <script>
         function runQuery(flag) {
@@ -137,21 +140,23 @@
                         <tr>
                             <td>Execution Time (query)</td>
                             <td>${data.execution_time}</td>
-                            <td>$ <meter value="${data.execution_time}" min="0" max="0.5"> </td>
+                            <td><meter value="${data.execution_time}" min="0" max="0.5"> </td>
                         </tr>
                         <tr>
                             <td>Planning Time (query)</td>
                             <td>${data.planning_time}</td>
-                            <td>$ <meter value="${data.planning_time}" min="0" max="0.5"> </td>
+                            <td><meter value="${data.planning_time}" min="0" max="0.5"> </td>
                         </tr>
                         <tr>
                             <td>Total Time (end-to-end)</td>
                             <td>${data.total_time}</td>    
-                            <td>$ <meter value="${data.total_time}" min="0" max="0.5">  </td>
+                            <td><meter value="${data.total_time}" min="0" max="0.5">  </td>
                         </tr>
                     `;
 
                     document.getElementById("fast-slow-query-data").innerHTML = rows;
+
+                    document.getElementById("query-display").textContent = data.query_used;
                 });
         }
       </script>
