@@ -91,31 +91,6 @@
             
     </script>
 
-    <h4>Customer data</h4>
-    <table border="1">
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-        </tr>
-        <tbody id="customer-data"></tbody>
-    </table>
-
-     <script>
-        fetch('/team8_customers')
-            .then(response => response.json())
-            .then(data => {
-                let rows = "";
-                data.forEach(customer => {
-                    rows += `<tr style="border: 3px solid">
-                        <td>${customer.name}</td>
-                        <td>${customer.email}</td>
-                    </tr>`;           
-                });
-                document.getElementById("customer-data").innerHTML = rows;
-            });
-            
-    </script>
-
      <h3>Add Flower</h3>
       <form method="post" action="/team8_flowers/add">
         <label>Flower name</label>
@@ -129,17 +104,16 @@
         <button type="submit">Add Flower</button>
       </form>       
 
-      <!-- Fast/Slow button implementation -->
+     <h3>Fast / Slow Query</h3>
       <div class="query-buttons">
-      
       <button type="button" onclick="runQuery(1)">
-        Fast Query
+        Fast Query 
       </button>
 
       <button type="button" onclick="runQuery(0)">
         Slow Query
       </button>
-
+     <h5></h5>
       <table border="1">
         <thead>
             <tr>
@@ -160,8 +134,16 @@
                     // Execution time row
                     rows += `
                         <tr>
-                            <td>Execution Time</td>
+                            <td>Execution Time (query)</td>
                             <td>${data.execution_time}</td>
+                        </tr>
+                        <tr>
+                            <td>Planning Time (query)</td>
+                            <td>${data.planning_time}</td>
+                        </tr>
+                        <tr>
+                            <td>Total Time (end-to-end)</td>
+                            <td>${data.total_time} s</td>    
                         </tr>
                     `;
 

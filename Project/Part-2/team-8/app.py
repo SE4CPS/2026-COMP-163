@@ -103,35 +103,56 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        cur.execute("SELECT * FROM team8_flowers;")
-        
-        explain_analyze_info = cur.fetchall()
-        
+        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;")
+        raw_output = cur.fetchall()
         end_time = time.time()
-        total_time = round(end_time - start_time,4)
+        
+
+        total_time = round(end_time - start_time, 4)
+        planning_time = "N/A"
+        execution_time = "N/A"
+    
+        for row in raw_output:
+            line = row[0]
+            if "Planning Time:" in line:
+                planning_time = line.split(":")[1].strip()
+            elif "Execution Time:" in line:
+                execution_time = line.split(":")[1].strip() 
         cur.close()
         conn.close()
 
         return jsonify({
-            "execution_time": total_time
+            "planning_time": planning_time,
+            "execution_time": execution_time,
+            "total_time": total_time
         })
     
     else:
         conn = get_db_connection()
         cur = conn.cursor()
+        
         start_time = time.time()
-        cur.execute("SELECT * FROM team8_flowers CROSS JOIN team8_orders;")
-        
-        explain_analyze_info = cur.fetchall()
-        
+        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;")
+        raw_output = cur.fetchall()
         end_time = time.time()
-        total_time = round(end_time - start_time,4)
+        
+        total_time = round(end_time - start_time, 4)
+        planning_time = "N/A"
+        execution_time = "N/A"
+    
+        for row in raw_output:
+            line = row[0]
+            if "Planning Time:" in line:
+                planning_time = line.split(":")[1].strip()
+            elif "Execution Time:" in line:
+                execution_time = line.split(":")[1].strip() 
         cur.close()
         conn.close()
 
-
         return jsonify({
-            "execution_time": total_time
+            "planning_time": planning_time,
+            "execution_time": execution_time,
+            "total_time": total_time
         })
 
 #==============SQL QUERIES end======================================
