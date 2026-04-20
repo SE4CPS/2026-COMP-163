@@ -58,6 +58,15 @@ def init_db():
 def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
+
+    cur.execute("SELECT COUNT(*) FROM team4_flowers;")
+    count = cur.fetchone()[0]
+
+    if count > 0:
+        cur.close()
+        conn.close()
+        return
+
     cur.execute("""
         INSERT INTO team4_flowers (name, last_watered, water_level, min_water_required)
         VALUES

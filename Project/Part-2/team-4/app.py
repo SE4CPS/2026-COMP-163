@@ -64,6 +64,29 @@ def get_flowers():
     
 @app.route('/query/slow', methods=['GET'])
 def run_slow_query():
+    # sql = """
+    # SELECT
+    #     o.id,
+    #     o.customer_id,
+    #     o.flower_id,
+    #     o.order_date,
+    #     c.id,
+    #     c.name,
+    #     c.email,
+    #     f.flower_id,
+    #     f.name,
+    #     f.last_watered,
+    #     f.water_level,
+    #     f.min_water_required
+    # FROM team4_orders o
+    # JOIN team4_customers c ON o.customer_id = c.id
+    # JOIN team4_flowers f ON o.flower_id = f.flower_id
+    # WHERE LOWER(c.name) LIKE '%customer%'     // this WHERE clause apparently violates the "no projection and no selection" rule
+    #    OR LOWER(c.email) LIKE '%example%'
+    #    OR UPPER(f.name) LIKE '%RO%'
+    # ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;
+    # """
+
     sql = """
     SELECT
         o.id,
@@ -81,11 +104,9 @@ def run_slow_query():
     FROM team4_orders o
     JOIN team4_customers c ON o.customer_id = c.id
     JOIN team4_flowers f ON o.flower_id = f.flower_id
-    WHERE LOWER(c.name) LIKE '%customer%'
-       OR LOWER(c.email) LIKE '%example%'
-       OR UPPER(f.name) LIKE '%RO%'
     ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;
     """
+    
     conn = get_db_connection()
     cur = conn.cursor()
 

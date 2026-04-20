@@ -13,6 +13,8 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
+        CREATE EXTENSION IF NOT EXISTS pgcrypto;        
+
         CREATE TABLE IF NOT EXISTS team5_flowers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
