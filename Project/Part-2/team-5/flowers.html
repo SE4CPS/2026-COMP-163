@@ -137,6 +137,9 @@
 
     <p id="status-msg"></p>
 
+    <h2>Slow vs Fast Query </h2>
+    <!-- added buttons here with time it took -->
+
     <script>
         const API = 'http://127.0.0.1:5001';
 
@@ -251,6 +254,34 @@
                 .then(data => renderFlowers(data))
                 .catch(err => {
                     document.getElementById('status-msg').textContent = 'could not load flowers: ' + err.message;
+                });
+        }
+
+        function runSlowQuery() {
+            document.getElementById('slow_time').textContent = "It took...";
+
+            fetch(`${API}/flowers/slow_query`)
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('slow_time').textContent =
+                        `${result.execution_time.toFixed(4)} seconds`;
+                })
+                .catch(err => {
+                    document.getElementById('slow_time').textContent = 'Error: ' + err.message;
+                });
+        }
+
+        function runFastQuery() {
+            document.getElementById('fast_time').textContent = "It took...";
+
+            fetch(`${API}/flowers/fast_query`)
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('fast_time').textContent =
+                        `${result.execution_time.toFixed(4)} seconds`;
+                })
+                .catch(err => {
+                    document.getElementById('fast_time').textContent = 'Error: ' + err.message;
                 });
         }
 
