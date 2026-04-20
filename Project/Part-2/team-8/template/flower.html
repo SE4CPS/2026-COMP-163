@@ -119,6 +119,7 @@
             <tr>
                 <th>Metric</th>
                 <th>Value</th>
+                <th>Meter</th>
             </tr>
         </thead>
         <tbody id="fast-slow-query-data"></tbody>
@@ -136,14 +137,17 @@
                         <tr>
                             <td>Execution Time (query)</td>
                             <td>${data.execution_time}</td>
+                            <td>$ <meter value="${data.execution_time}" min="0" max="0.5"> </td>
                         </tr>
                         <tr>
                             <td>Planning Time (query)</td>
                             <td>${data.planning_time}</td>
+                            <td>$ <meter value="${data.planning_time}" min="0" max="0.5"> </td>
                         </tr>
                         <tr>
                             <td>Total Time (end-to-end)</td>
-                            <td>${data.total_time} s</td>    
+                            <td>${data.total_time}</td>    
+                            <td>$ <meter value="${data.total_time}" min="0" max="0.5">  </td>
                         </tr>
                     `;
 

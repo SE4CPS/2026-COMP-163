@@ -12,9 +12,10 @@ def _get_conn():
 def init_db():
     conn = _get_conn()
     cur = conn.cursor()
+    #id -> flower_id. In team8_flowers AND team8_orders. If it breaks, change them back to `id`
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team8_flowers (
-            id SERIAL PRIMARY KEY,
+            flower_id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
             last_watered DATE NOT NULL CHECK(last_watered <= CURRENT_DATE),
             water_level INT NOT NULL CHECK(water_level >= 0),
@@ -28,9 +29,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS team8_orders (
             id SERIAL PRIMARY KEY,
             customer_id INT REFERENCES team8_customers(id),
-            flower_id INT REFERENCES team8_flowers(id),
+            flower_id INT REFERENCES team8_flowers(flower_id),
             order_date DATE
-        );
+        ); 
     """)
     conn.commit()
     cur.close()
@@ -63,7 +64,7 @@ def seed_data():
             INSERT INTO team8_orders (customer_id, flower_id, order_date)
             SELECT
                 (SELECT id FROM team8_customers ORDER BY random() LIMIT 1),
-                (SELECT id FROM team8_flowers ORDER BY random() LIMIT 1),
+                (SELECT flower_id FROM team8_flowers ORDER BY random() LIMIT 1),
                 CURRENT_DATE - ((random() * 365)::INT)
             FROM generate_series(1, 10000);
         """) # Adjust line 65 based on team8_flowers

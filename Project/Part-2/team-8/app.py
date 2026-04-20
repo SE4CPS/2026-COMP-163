@@ -51,7 +51,8 @@ def get_columns():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") #FIXED: Changed `id` --> `flower_id`"
+    #CHANGED id -> flower_id. If code breaks, change back to `id`
+    cur.execute("SELECT flower_id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") #FIXED: Changed `id` --> `flower_id`"
     
     flowers = cur.fetchall()
     cur.close()
