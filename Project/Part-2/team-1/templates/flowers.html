@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>Team 1 - Flower Shop API</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        button { margin: 6px 4px; padding: 8px 16px; cursor: pointer; }
+        .result { margin-top: 16px; }
+        .timing { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
+        .slow { color: #c0392b; }
+        .fast { color: #27ae60; }
+        pre { background: #f4f4f4; padding: 12px; border-radius: 4px; white-space: pre-wrap; font-size: 0.85em; }
+        table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>Flower Shop API</h1>
+
+    <h2>Query Performance</h2>
+    <button onclick="runQuery('slow')">Run Slow Query</button>
+    <button onclick="runQuery('fast')">Run Fast Query</button>
+
+    <div class="result" id="result" style="display:none">
+        <div class="timing" id="timing"></div>
+        <h3>SQL Query</h3>
+        <pre id="query-text"></pre>
+    </div>
+
+    <script>
+        async function runQuery(type) {
+            const res = await fetch(`/${type}-query`);
+            const data = await res.json();
+
+            const timingEl = document.getElementById('timing');
+            timingEl.textContent = `Execution time: ${data.execution_time}s`;
+            timingEl.className = 'timing ' + (type === 'slow' ? 'slow' : 'fast');
+
+            document.getElementById('query-text').textContent = data.query.trim();
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

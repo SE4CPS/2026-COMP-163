@@ -12,9 +12,7 @@ print("TEMPLATES EXISTS:", os.path.exists("templates/flowers.html"))
 
 # Database connection details
 DATABASE_URL = (
-"postgresql://readonly:ReadOnly456%21@"
-"ep-curly-bird-anqf0rre-pooler.c-6.us-east-1.aws.neon.tech/"
-"neondb?sslmode=require&channel_binding=require"
+"postgresql://neondb_owner:npg_XGW8VMqI4ohn@ep-red-snow-am3ghme3.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
 )
 
 def get_db_connection():
@@ -203,5 +201,6 @@ def fast_query():
         "query": query,
         "execution_time": round(end - start, 2)
     })
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

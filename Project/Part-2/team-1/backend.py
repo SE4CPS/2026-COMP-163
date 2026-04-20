@@ -1,9 +1,7 @@
 import psycopg2
 
 DATABASE_URL = (
-"postgresql://readonly:ReadOnly456%21@"
-"ep-curly-bird-anqf0rre-pooler.c-6.us-east-1.aws.neon.tech/"
-"neondb?sslmode=require&channel_binding=require"
+"postgresql://neondb_owner:npg_XGW8VMqI4ohn@ep-red-snow-am3ghme3.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
 )
 
 def _get_conn():
