@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, render_template_string
+from flask import Blueprint, request, redirect, url_for, render_template_string, jsonify
 import backend
 
 frontend_bp = Blueprint("frontend", __name__)
@@ -92,6 +92,71 @@ PAGE = """
       {% endfor %}
     </tbody>
   </table>
+
+  <h2>Query Performance Demo</h2>
+ 
+  <div class="card">
+    <button id="slow-btn" onclick="runQuery('slow')">Slow Query</button>
+    &nbsp; <span id="slow-status"></span>
+    <pre>SELECT
+    o.id,
+    o.customer_id,
+    o.flower_id,
+    o.order_date,
+    c.id,
+    c.name,
+    c.email,
+    f.id,
+    f.name,
+    f.last_watered,
+    f.water_level,
+    f.min_water_required,
+    md5(LOWER(c.email) || LOWER(c.name)) AS encrypted_email,
+    md5(LOWER(c.name) || LOWER(f.name) || CAST(o.order_date AS TEXT)) AS row_hash
+FROM team11_orders o
+JOIN team11_customers c ON o.customer_id = c.id
+JOIN team11_flowers f ON o.flower_id = f.id
+WHERE LOWER(c.name) LIKE '%customer%'
+ORDER BY md5(LOWER(c.name) || LOWER(f.name) || LOWER(c.email)),
+         md5(LOWER(c.email) || CAST(o.order_date AS TEXT)),
+         UPPER(f.name),
+         o.order_date DESC;</pre>
+  </div>
+ 
+  <div class="card">
+    <button id="fast-btn" onclick="runQuery('fast')">Fast Query</button>
+    &nbsp; <span id="fast-status"></span>
+    <pre>NEED FAST QUERY</pre>
+  </div>
+ 
+  <script>
+    function runQuery(type) {
+      var btn = document.getElementById(type + '-btn');
+      var status = document.getElementById(type + '-status');
+      btn.disabled = true;
+      status.textContent = '0.0s — Running...';
+ 
+      var start = Date.now();
+      var interval = setInterval(function() {
+        status.textContent = ((Date.now() - start) / 1000).toFixed(1) + 's — Running...';
+      }, 100);
+ 
+      fetch("/query/run?type=" + type)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          clearInterval(interval);
+          var endToEnd = ((Date.now() - start) / 1000).toFixed(4);
+          status.textContent = 'DB execution: ' + data.elapsed + 's | End-to-end: ' + endToEnd + 's';
+          btn.disabled = false;
+        })
+        .catch(function(err) {
+          clearInterval(interval);
+          status.textContent = 'Error: ' + err.message;
+          btn.disabled = false;
+        });
+    }
+  </script>
+  
 </body>
 </html>
 """
@@ -130,3 +195,12 @@ def delete(id):
 def water_flower(id):
     backend.water_flower(id)
     return redirect(url_for("frontend.index"))
+
+@frontend_bp.route("/query/run", methods=["GET"])
+def run_query():
+    query_type = request.args.get("type", "slow")
+    if query_type == "fast":
+        result = backend.fast_query()
+    else:
+        result = backend.slow_query()
+    return jsonify(result)
