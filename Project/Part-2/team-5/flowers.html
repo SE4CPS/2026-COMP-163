@@ -136,10 +136,18 @@
     </table>
 
     <p id="status-msg"></p>
+    <div id="Part2">
+        <h2>Slow vs Fast Query </h2>
+        <div style="display: flex; gap: 2rem; align-items: center;">
+            <button class="water-btn" onclick="runSlowQuery()">Run Slow Query</button>
+            <p>Slow Query Time: <span id="slow_time">-</span></p>
+        </div>
 
-    <h2>Slow vs Fast Query </h2>
-    <!-- added buttons here with time it took -->
-
+        <div style="display: flex; gap: 2rem; align-items: center; margin-top: 1rem;">
+            <button class="water-btn" onclick="runFastQuery()">Run Fast Query</button>
+            <p>Fast Query Time: <span id="fast_time">-</span></p>
+        </div>
+    </div>
     <script>
         const API = 'http://127.0.0.1:5001';
 
