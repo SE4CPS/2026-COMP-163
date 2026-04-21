@@ -92,7 +92,7 @@ def run_expensive_query():
     conn = get_conn()
     cur = conn.cursor()
 
-    print("Running VERY slow query... ")
+    print("Running VERY slow query...")
 
     query = """
     SELECT *
@@ -136,7 +136,7 @@ def run_optimized_query():
     conn = get_conn()
     cur = conn.cursor()
 
-    print("Running OPTIMIZED query... ⚡")
+    print("Running OPTIMIZED query...")
 
     query = """
     SELECT * FROM (
