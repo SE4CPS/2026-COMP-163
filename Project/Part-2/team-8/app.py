@@ -104,7 +104,8 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;")
+        query_used = "EXPLAIN ANALYZE SELECT * FROM team8_flowers;"
+        cur.execute(query_used)
         raw_output = cur.fetchall()
         end_time = time.time()
         
@@ -125,7 +126,8 @@ def fast_slow_query(flag):
         return jsonify({
             "planning_time": planning_time,
             "execution_time": execution_time,
-            "total_time": total_time
+            "total_time": total_time,
+            "query_used" : query_used
         })
     
     else:
@@ -133,7 +135,8 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;")
+        query_used = "EXPLAIN ANALYZE SELECT * FROM team8_flowers;"
+        cur.execute(query_used)
         raw_output = cur.fetchall()
         end_time = time.time()
         
@@ -153,7 +156,8 @@ def fast_slow_query(flag):
         return jsonify({
             "planning_time": planning_time,
             "execution_time": execution_time,
-            "total_time": total_time
+            "total_time": total_time,
+            "query_used" : query_used
         })
 
 #==============SQL QUERIES end======================================
