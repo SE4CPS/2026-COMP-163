@@ -6,10 +6,7 @@ app = Flask(__name__)
 
 # Database connection details ADDED
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_ZXbPjA2tOf6K@ep-green-pond-amrjk7ka-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-    # "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    # "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    # "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_aLAlvoi6MZ3e@ep-weathered-art-amzgc7g9-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 )
 
 def get_db_connection():
@@ -135,14 +132,14 @@ def slow_query():
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-                SELECT f.id, f.name, f.last_watered, f.water_level, f.min_water_required,
-                    c.name AS customer_name, o.order_date,
-                    pgp_sym_encrypt(c.email::text, 'encrypt_key') AS encrypted_email
-                FROM team5_flowers f
-                CROSS JOIN team5_orders o
-                CROSS JOIN team5_customers c
-                WHERE LOWER(f.name) LIKE '%e'
-                ORDER BY UPPER(c.name) DESC;
+        SELECT f.id, f.name, f.last_watered, f.water_level, f.min_water_required,
+            c.name, o.order_date,
+            pgp_sym_encrypt(c.email::text, 'encrypt_key') AS encrypted_email
+        FROM team5_flowers f
+        INNER JOIN team5_orders o ON f.id = o.flower_id
+        CROSS JOIN team5_customers c
+        WHERE LOWER(f.name) LIKE '%e'
+        ORDER BY UPPER(c.name) DESC;
     """)
     results = cur.fetchall()
     cur.close()
@@ -152,6 +149,7 @@ def slow_query():
     return jsonify({
         "execution_time": elapsed_time
     })
+
 @app.route('/flowers/fast_query', methods=['GET'])
 def fast_query():
     start = time.perf_counter()
@@ -175,7 +173,3 @@ def fast_query():
     return jsonify({
         "execution_time": elapsed_time
     })
-# Use this algorithm provided
-    # UPDATE teamX_flowers
-    # SET water_level = water_level - (5 * (CURRENT_DATE - last_watered));
-# use PUT methods ???
