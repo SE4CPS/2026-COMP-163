@@ -2,14 +2,13 @@ import psycopg2
 from datetime import date
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_kasM4eQ9VOzL@"
+    "ep-lucky-cherry-anpfkxkt-pooler.c-6.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)
-
 
 def insert_flower(name, last_watered, water_level, min_water_required):
     conn = _get_conn()
@@ -30,7 +29,6 @@ def insert_flower(name, last_watered, water_level, min_water_required):
     finally:
         cur.close()
         conn.close()
-
 
 def select_flower(id=None):
     conn = _get_conn()
@@ -85,7 +83,6 @@ def select_flower(id=None):
         cur.close()
         conn.close()
 
-
 def update_flower(id, name, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
@@ -108,7 +105,6 @@ def update_flower(id, name, last_watered, water_level, min_water_required):
     finally:
         cur.close()
         conn.close()
-
 
 def delete_flower(id):
     conn = _get_conn()
