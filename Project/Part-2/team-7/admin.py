@@ -66,7 +66,7 @@ def generate_random_data():
             'Customer_' || g,
             'customer_' || g || '@example.com'
         FROM generate_series(1, 500) AS g
-        ON CONFLICT (name, email) DO NOTHING;
+        ON CONFLICT (email) DO NOTHING;
                 
         INSERT INTO team7_orders (customer_id, flower_id, order_date)
         SELECT
@@ -86,7 +86,7 @@ def slow_query():
     cur = conn.cursor()
 
     cur.execute("""
-                
+         
     """)
 
     conn.commit()
@@ -98,7 +98,7 @@ def fast_query():
     cur = conn.cursor()
 
     cur.execute("""
-                
+        
     """)
 
     conn.commit()
