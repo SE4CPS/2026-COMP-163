@@ -51,7 +51,8 @@ def get_columns():
 def get_flowers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") #FIXED: Changed `id` --> `flower_id`"
+    #CHANGED id -> flower_id. If code breaks, change back to `id`
+    cur.execute("SELECT flower_id, name, last_watered, GREATEST(water_level - (5 * (CURRENT_DATE - last_watered)),0) AS water_level, min_water_required FROM team8_flowers;") #FIXED: Changed `id` --> `flower_id`"
     
     flowers = cur.fetchall()
     cur.close()
@@ -103,7 +104,8 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;")
+        query_used = "EXPLAIN ANALYZE SELECT * FROM team8_flowers;"
+        cur.execute(query_used)
         raw_output = cur.fetchall()
         end_time = time.time()
         
@@ -124,7 +126,8 @@ def fast_slow_query(flag):
         return jsonify({
             "planning_time": planning_time,
             "execution_time": execution_time,
-            "total_time": total_time
+            "total_time": total_time,
+            "query_used" : query_used
         })
     
     else:
@@ -132,7 +135,8 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        cur.execute("EXPLAIN ANALYZE SELECT * FROM team8_flowers;")
+        query_used = "EXPLAIN ANALYZE SELECT * FROM team8_flowers;"
+        cur.execute(query_used)
         raw_output = cur.fetchall()
         end_time = time.time()
         
@@ -152,7 +156,8 @@ def fast_slow_query(flag):
         return jsonify({
             "planning_time": planning_time,
             "execution_time": execution_time,
-            "total_time": total_time
+            "total_time": total_time,
+            "query_used" : query_used
         })
 
 #==============SQL QUERIES end======================================

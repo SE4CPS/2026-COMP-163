@@ -1,6 +1,8 @@
 import psycopg2
 from flask import Flask, request, jsonify, send_from_directory
 from datetime import datetime, date 
+import time
+
 
 app = Flask(__name__)
 
@@ -8,11 +10,10 @@ app = Flask(__name__)
 TIMESCALE = 1
 
 # Database connection details
-
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_ngISkrv4PXx7@"
+    "ep-green-grass-amgmprku-pooler.c-5.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def get_db_connection():
@@ -60,7 +61,104 @@ def get_flowers():
     #     "id": f[0], "name": f[1], "last_watered": f[2].strftime("%Y-%m-%d"),
     #     "water_level": f[3], "min_water_required": f[4], "needs_watering": f[3] < f[4]
     # } for f in flowers])
+    
+@app.route('/query/slow', methods=['GET'])
+def run_slow_query():
+    # sql = """
+    # SELECT
+    #     o.id,
+    #     o.customer_id,
+    #     o.flower_id,
+    #     o.order_date,
+    #     c.id,
+    #     c.name,
+    #     c.email,
+    #     f.flower_id,
+    #     f.name,
+    #     f.last_watered,
+    #     f.water_level,
+    #     f.min_water_required
+    # FROM team4_orders o
+    # JOIN team4_customers c ON o.customer_id = c.id
+    # JOIN team4_flowers f ON o.flower_id = f.flower_id
+    # WHERE LOWER(c.name) LIKE '%customer%'     // this WHERE clause apparently violates the "no projection and no selection" rule
+    #    OR LOWER(c.email) LIKE '%example%'
+    #    OR UPPER(f.name) LIKE '%RO%'
+    # ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;
+    # """
 
+    sql = """
+    SELECT
+        o.id,
+        o.customer_id,
+        o.flower_id,
+        o.order_date,
+        c.id,
+        c.name,
+        c.email,
+        f.flower_id,
+        f.name,
+        f.last_watered,
+        f.water_level,
+        f.min_water_required
+    FROM team4_orders o
+    JOIN team4_customers c ON o.customer_id = c.id
+    JOIN team4_flowers f ON o.flower_id = f.flower_id
+    ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;
+    """
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    start = time.perf_counter()
+    cur.execute(sql)
+    cur.fetchall()
+    elapsed = time.perf_counter() - start
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "label": "Slow Query",
+        "sql": sql.strip(),
+        "execution_time_seconds": round(elapsed, 4)
+    })
+
+
+@app.route('/query/fast', methods=['GET'])
+def run_fast_query():
+    sql = """
+    SELECT
+        o.id,
+        o.order_date,
+        c.name AS customer_name,
+        c.email,
+        f.name AS flower_name
+    FROM team4_orders o
+    JOIN team4_customers c ON o.customer_id = c.id
+    JOIN team4_flowers f ON o.flower_id = f.flower_id
+    WHERE c.name LIKE 'Customer%'
+    ORDER BY o.id
+    LIMIT 50 OFFSET 0;
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    start = time.perf_counter()
+    cur.execute(sql)
+    cur.fetchall()
+    elapsed = time.perf_counter() - start
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "label": "Fast Query",
+        "sql": sql.strip(),
+        "execution_time_seconds": round(elapsed, 4)
+    })
+
+# Get flowers needing water
 @app.route('/flowers/needs_watering', methods=['GET'])
 def get_flowers_needing_water():
     conn = get_db_connection()

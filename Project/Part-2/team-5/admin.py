@@ -1,9 +1,10 @@
 import psycopg2
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_ZXbPjA2tOf6K@ep-green-pond-amrjk7ka-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    # "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
+    # "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
+    # "neondb?sslmode=require"
 )
 
 def _get_conn():
@@ -13,6 +14,8 @@ def init_db():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
+        CREATE EXTENSION IF NOT EXISTS pgcrypto;        
+
         CREATE TABLE IF NOT EXISTS team5_flowers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
@@ -54,7 +57,7 @@ def seed_data():
                     ('Lily', '2026-03-05', 3, 5),  
                     ('Daisy', '2026-03-01', 0, 3),
                     ('Chrysanthemum', '2026-03-19', 9, 10),
-                    ('Orchid', '2026-03-20', 8, 8)
+                    ('Orchid', '2026-03-20', 8, 8);
         """)
 
         cur.execute("""
