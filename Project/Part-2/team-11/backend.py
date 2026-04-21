@@ -1,5 +1,6 @@
 import psycopg2
 from datetime import date
+import time
 
 DATABASE_URL = (
     "postgresql://neondb_owner:npg_kasM4eQ9VOzL@"
@@ -142,6 +143,48 @@ def water_flower(id):
         conn.rollback()
         print("Watering error:", e)
         return False
+    finally:
+        cur.close()
+        conn.close()
+
+SLOW_SQL = """
+SELECT
+    o.id,
+    o.customer_id,
+    o.flower_id,
+    o.order_date,
+    c.id,
+    c.name,
+    c.email,
+    f.id,
+    f.name,
+    f.last_watered,
+    f.water_level,
+    f.min_water_required,
+    md5(LOWER(c.email) || LOWER(c.name)) AS encrypted_email,
+    md5(LOWER(c.name) || LOWER(f.name) || CAST(o.order_date AS TEXT)) AS row_hash
+FROM team11_orders o
+JOIN team11_customers c ON o.customer_id = c.id
+JOIN team11_flowers f ON o.flower_id = f.id
+WHERE LOWER(c.name) LIKE '%customer%'
+ORDER BY md5(LOWER(c.name) || LOWER(f.name) || LOWER(c.email)),
+         md5(LOWER(c.email) || CAST(o.order_date AS TEXT)),
+         UPPER(f.name),
+         o.order_date DESC;
+"""
+ 
+def slow_query():
+    conn = _get_conn()
+    cur = conn.cursor()
+    start = time.time()
+    try:
+        cur.execute(SLOW_SQL)
+        cur.fetchall()
+        elapsed = time.time() - start
+        return {"sql": SLOW_SQL.strip(), "elapsed": round(elapsed, 4)}
+    except Exception as e:
+        elapsed = time.time() - start
+        return {"sql": SLOW_SQL.strip(), "elapsed": round(elapsed, 4), "error": str(e)}
     finally:
         cur.close()
         conn.close()

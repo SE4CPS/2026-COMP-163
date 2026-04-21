@@ -92,9 +92,20 @@ def order_data():
     conn.close()
 
 def all_data():
-    seed_data()
-    customer_data()
-    order_data()
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM team11_customers;")
+    count = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+
+    if count == 0:
+        seed_data()
+        customer_data()
+        order_data()
+        print("Data seeded.")
+    else:
+        print(f"Data already exists ({count} customers), skipping seed.")
 
 def print_customers(limit=20):
     conn = _get_conn()
