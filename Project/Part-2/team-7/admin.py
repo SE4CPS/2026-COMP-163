@@ -29,7 +29,7 @@ def init_db():
             id SERIAL PRIMARY KEY,
             customer_id INT REFERENCES team7_customers(id),
             flower_id INT REFERENCES team7_flowers(id),
-            order_date DATE NOT NULL DEFAULT CURRENT_DATE
+            order_date DATE NOT NULL DEFAULT CURRENT_DATE,
             CONSTRAINT unique_order_entry UNIQUE (customer_id, flower_id, order_date)
         );
     """)
