@@ -30,6 +30,7 @@ def init_db():
             customer_id INT REFERENCES team7_customers(id),
             flower_id INT REFERENCES team7_flowers(id),
             order_date DATE NOT NULL DEFAULT CURRENT_DATE
+            CONSTRAINT unique_order_entry UNIQUE (customer_id, flower_id, order_date)
         );
     """)
     conn.commit()
@@ -74,7 +75,7 @@ def generate_random_data():
             (random() * 99 + 1)::INT,  -- adjust based on teamX_flowers
             CURRENT_DATE - ((random() * 365)::INT)
         FROM generate_series(1, 10000)
-        ON CONFLICT (order_date) DO NOTHING;
+        ON CONFLICT (customer_id, flower_id, order_date) DO NOTHING;
     """)
 
     conn.commit()
