@@ -1,10 +1,5 @@
 import psycopg2
-
-DATABASE_URL = (
-    "postgresql://postgres@"
-    "localhost:5432/"
-    ""
-)
+from db_conn import DATABASE_URL
 
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)

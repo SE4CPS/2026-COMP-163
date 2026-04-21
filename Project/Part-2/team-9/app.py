@@ -1,14 +1,8 @@
 import psycopg2
 from flask import Flask, request, jsonify, send_file
+from db_conn import DATABASE_URL
 
 app = Flask(__name__)
-
-# Database connection details
-DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
-)
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
