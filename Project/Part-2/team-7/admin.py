@@ -32,6 +32,10 @@ def init_db():
             order_date DATE NOT NULL DEFAULT CURRENT_DATE,
             CONSTRAINT unique_order_entry UNIQUE (customer_id, flower_id, order_date)
         );
+        --indexes for querying
+        CREATE INDEX id7_orders_customer_id ON team7_orders(customer_id);
+        CREATE INDEX id7_orders_flower_id ON team7_orders(flower_id);
+        CREATE INDEX id7_flowers_name ON team7_flowers(name);
     """)
     conn.commit()
     cur.close()
@@ -93,6 +97,7 @@ def slow_query():
     conn.commit()
     cur.close()
     conn.close()
+    return result
 
 def fast_query():
     conn = _get_conn()
@@ -105,3 +110,4 @@ def fast_query():
     conn.commit()
     cur.close()
     conn.close()
+    return result
