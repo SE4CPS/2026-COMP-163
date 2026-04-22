@@ -109,3 +109,34 @@ def seed_data():
     conn.commit()
     cur.close()
     conn.close()
+
+if __name__ == "__main__":
+
+	while True:
+		user = input("""
+                Choice:
+                d:  delete database
+                i:  init database
+                s:  seed database
+                gc: gen customers
+                go: gen orders
+			  """)
+		match user:
+			case "d":
+				print("Deleting db")
+				del_db()
+			case "s":
+				print("Seeding db")
+				seed_data()
+			case "i":
+				print("Initializing db")
+				init_db()
+			case "gc":
+				print("Generating customers")
+				generate_customers()
+			case "go":
+				print("Geeratingn orders")
+				generate_orders()
+			case _:
+				print("Invalid choice")
+				continue
