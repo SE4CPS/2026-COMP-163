@@ -111,16 +111,30 @@ def slow_query():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("""
+    benchmark = request.args.get('benchmark', 0)
+
+    query = """
         SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name, o.customer_id, o.flower_id
         FROM team9_orders o
         CROSS JOIN team9_customers c
         CROSS JOIN team9_flowers f;
-    """)
+    """
 
+    if benchmark:
+        query = "EXPLAIN ANALYZE " + query
+
+    cur.execute(query)
     results = cur.fetchall()
+
+    if benchmark:
+        text = "\n".join([s[0] for s in results])
+        print(text)
+        cur.close()
+        conn.close()
+        return jsonify({"text": text})
+
     orders = []
-    for customer_id, customer_name, customer_email, order_id, order_date, flower_id, flower_name, order_customer_id, order_flower_id in results:
+    for customer_id, customer_name, customer_email, order_id, order_date, flower_id, flower_name, order_customer_id, order_flower_id in results[1:]:
         if flower_id != order_flower_id or customer_id != order_customer_id:
             continue
 
@@ -141,24 +155,38 @@ def slow_query():
     conn.close()
     return jsonify(orders)
 
-# slow query (part 2)
+# optimized query (part 2)
 @app.route('/optimized_query', methods=['GET'])
 def optimized_query():
     conn = get_db_connection()
     cur = conn.cursor()
 
+    benchmark = request.args.get('benchmark', 0)
+
     # TODO: further optimization
-    cur.execute("""
+    query = """
         SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name
         FROM team9_orders o
         CROSS JOIN team9_customers c
         CROSS JOIN team9_flowers f
         WHERE o.customer_id = c.id AND o.flower_id = f.id;
-    """)
+    """
 
+    if benchmark:
+        query = "EXPLAIN ANALYZE " + query
+
+    cur.execute(query)
     results = cur.fetchall()
+
+    if benchmark:
+        text = "\n".join([s[0] for s in results])
+        print(text)
+        cur.close()
+        conn.close()
+        return jsonify({"text": text})
+
     orders = []
-    for customer_id, customer_name, customer_email, order_id, order_date, flower_id, flower_name in results:
+    for customer_id, customer_name, customer_email, order_id, order_date, flower_id, flower_name in results[1:]:
 
         order = {
             "customer_id": customer_id, 

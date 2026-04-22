@@ -21,13 +21,30 @@
 
     <h2>Orders</h2>
 
-    <button onclick="slow_query()">slow query</button>
-    <button onclick="optimized_query()">fast query</button>
-    <div id="queryresult"></div>
-    <button id="prev_page_btn" onclick="switch_orders_page(-1)" disabled>prev page</button>
-    <button id="next_page_btn" onclick="switch_orders_page(+1)" disabled>next page</button>
-    <span id="queryresult_showing"></span>
-    <table id="queryresult_table"></table>
+    <label for="benchmark_mode">benchmark</label>
+    <input type="checkbox" id="benchmark_mode" checked>
+    <div class="card">
+        <button onclick="slow_query()">slow query</button>
+        <pre>TODO</pre>
+    </div>
+    <br>
+    <div class="card">
+        <button onclick="optimized_query()">fast query</button>
+        <pre>TODO</pre>
+    </div>
+
+    <div class="card">
+        <h3>Result</h3>
+        <pre id="queryresult"></pre>
+
+        <br>
+
+        <button id="prev_page_btn" onclick="switch_orders_page(-1)" disabled>prev page</button>
+        <button id="next_page_btn" onclick="switch_orders_page(+1)" disabled>next page</button>
+        <span id="queryresult_showing"></span>
+
+        <table id="queryresult_table"></table>
+    </div>
 
     <dialog id="water_flower_modal">
         <h3>Water <span id="water_flower_modal_name"></h3>
@@ -137,11 +154,13 @@
 
         }
 
-        function do_query(endpoint) {
+        function do_query(endpoint, benchmark) {
             queryresult.innerText = "query running...";
             order_results = [];
             orders_page = 1;
             queryresult_table.innerHTML = "";
+
+            if (benchmark) endpoint += "?benchmark=1";
 
             fetch(endpoint).then(response => {
                 if (response.status != 200) {
@@ -151,19 +170,23 @@
 
                 queryresult.innerText = "success";
                 response.json().then(data => {
-                    // paginated for client performance reasons, ironically the DOM is the bottleneck lol
-                    order_results = data;
-                    switch_orders_page(0);
+                    if (benchmark) {
+                        queryresult.innerText += "\n" + data.text;
+                    } else {
+                        // paginated for client performance reasons, ironically the DOM is the bottleneck lol
+                        order_results = data;
+                        switch_orders_page(0);
+                    }
                 });
             });
         }
 
         function slow_query() {
-            do_query("/slow_query");
+            do_query("/slow_query", benchmark_mode.checked);
         }
 
         function optimized_query() {
-            do_query("/optimized_query");
+            do_query("/optimized_query", benchmark_mode.checked);
         }
 
         fetch_flower_list();
