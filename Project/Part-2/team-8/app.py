@@ -11,7 +11,8 @@ DATABASE_URL = (
     "neondb?sslmode=require&channel_binding=require" #"neondb?sslmode=require"
 )
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+    #added , `sslmode="require"`
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 def create_app():
     app = Flask(__name__, template_folder='template')
@@ -104,7 +105,20 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        query_used = "EXPLAIN ANALYZE SELECT * FROM team8_flowers;"
+        query_used = '''
+        CREATE INDEX idx_orders_customer_id ON team8_orders(customer_id);
+        CREATE INDEX idx_orders_flower_id ON team8_orders(flower_id);
+        CREATE INDEX idx_customers_email ON team8_customers(email);
+        CREATE INDEX idx_customers_name ON team8_customers(name);
+
+        EXPLAIN ANALYZE SELECT o.id, c.name, f.name
+        FROM team8_orders o
+        JOIN team8_customers c ON o.customer_id = c.id
+        JOIN team8_flowers f ON o.flower_id = f.flower_id
+        WHERE c.email LIKE '%gmail.com%'
+        ORDER BY c.name
+        LIMIT 100;
+        '''
         cur.execute(query_used)
         raw_output = cur.fetchall()
         end_time = time.time()
@@ -135,7 +149,35 @@ def fast_slow_query(flag):
         cur = conn.cursor()
         
         start_time = time.time()
-        query_used = "EXPLAIN ANALYZE SELECT * FROM team8_flowers;"
+        query_used = '''
+
+        EXPLAIN ANALYZE SELECT *, 
+        pgp_sym_encrypt(c.email, 'key') AS e1, 
+        pgp_sym_encrypt(c.email, 'key') AS e2, 
+        pgp_sym_encrypt(c.email, 'key') AS e3, 
+        pgp_sym_encrypt(c.email, 'key') AS e4,
+        pgp_sym_encrypt(c.email, 'key') AS e5,
+        pgp_sym_encrypt(c.email, 'key') AS e6,
+        (
+            SELECT AVG(o2.id)
+            FROM team8_orders o2
+            WHERE o2.customer_id = o.customer_id
+        ) AS avg_order,
+        (
+            SELECT COUNT(*)
+            FROM team8_orders o3
+            WHERE o3.customer_id = o.customer_id
+        ) AS order_count
+        FROM team8_orders o
+        JOIN team8_customers c ON o.customer_id = c.id
+        JOIN team8_flowers f ON o.flower_id = f.flower_id
+        WHERE LOWER(c.email) LIKE '%gmail.com%'
+        ORDER BY 
+            UPPER(c.name),
+            pgp_sym_encrypt(c.email, 'key')::text,
+            pgp_sym_encrypt(f.name, 'key')::text,
+            pgp_sym_encrypt(c.name, 'key')::text;
+        '''
         cur.execute(query_used)
         raw_output = cur.fetchall()
         end_time = time.time()
