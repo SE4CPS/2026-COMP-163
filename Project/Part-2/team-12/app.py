@@ -14,38 +14,56 @@ DATABASE_URL = (
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-@app.route('/flowers/slow_query', methods=['GET'])
+@app.route('/performance/slow_query', methods=['GET'])
 def slow_query():
     conn = get_db_connection()
     cur = conn.cursor()
 
     start_timer = time.time()
+    # cur.execute("""
+    #     SELECT 
+    #         o.id,
+    #         o.order_date,
+    #         c.name,
+    #         c.email,
+    #         f.name AS flower_name
+    #     FROM team12_orders o
+    #     JOIN team12_customers c ON o.customer_id = c.id
+    #     JOIN team12_flowers f ON o.flower_id = f.id
+    #     WHERE LOWER(c.name) LIKE '%customer%'
+    #     ORDER BY LOWER(f.name), LOWER(c.name), o.order_date DESC
+    # """)
     cur.execute("""
-        SELECT *
-        FROM team12_order o
+        SELECT
+            c.name,
+            c.email,
+            f.name,
+            o.order_date
+        FROM team12_orders o
         JOIN team12_customers c ON o.customer_id = c.id
-        JOIN team12_flowers f ON o.flower_id = f.id
+        JOIN team12_flowers f   ON o.flower_id = f.id
+        CROSS JOIN generate_series(1, 35) AS n
         WHERE LOWER(c.name) LIKE '%customer%'
-        ORDER BY LOWER(f.name), LOWER(c.name), o.order_date DESC
+        ORDER BY LOWER(f.name), LOWER(c.name), o.order_date DESC;
     """)
-    row = cur.fetchall()
-    time_elasped = time.time() - start_timer
+    rows = cur.fetchall()
+    time_elapsed = time.time() - start_timer
 
     cur.close()
     conn.close()
     return jsonify({
-        "Query": "Slow",
-        "Query Time (seconds)": time_elasped,
-        "Results": [{
-            "order_id": row[0],
-            "customer": row[1],
-            "email":    row[2],
-            "flower":   row[3],
-            "date":     row[4].strftime("%Y-%m-%d")
-        } for row in rows]
+        "query_time_seconds": time_elapsed,
+        "rows_returned": len(rows),
+        # "results": [{
+        #     "order_id": row[0],
+        #     "customer": row[1],
+        #     "email":    row[2],
+        #     "flower":   row[3],
+        #     "date":     row[4].strftime("%Y-%m-%d")
+        # } for row in rows]
     })
 
-@app.route('/flowers/fast_query', methods=['GET'])
+@app.route('/performance/fast_query', methods=['GET'])
 def fast_query():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -57,7 +75,7 @@ def fast_query():
             o.order_date,
             c.name,
             c.email,
-            f.name AS flower_name,
+            f.name AS flower_name
         FROM team12_orders o
         JOIN team12_customers c ON o.customer_id = c.id
         JOIN team12_flowers f ON o.flower_id = f.id
@@ -66,19 +84,19 @@ def fast_query():
         LIMIT  50 OFFSET 0
     """)
     rows = cur.fetchall()
-    time_elasped = time.time() - start_timer
+    time_elapsed = time.time() - start_timer
     cur.close()
     conn.close()
     return jsonify({
-        "Query": "Fast",
-        "Query Time (seconds)": time_elasped,
-        "Results": [{
-            "order_id": row[0],
-            "customer": row[1],
-            "email":    row[2],
-            "flower":   row[3],
-            "date":     row[4].strftime("%Y-%m-%d")
-        } for row in rows]
+        "query_time_seconds": time_elapsed,
+        "rows_returned": len(rows),
+        # "results": [{
+        #     "order_id": row[0],
+        #     "date":     row[1].strftime("%Y-%m-%d"),
+        #     "customer": row[2],
+        #     "email":    row[3],
+        #     "flower":   row[4]
+        # } for row in rows]
     })
 
 
