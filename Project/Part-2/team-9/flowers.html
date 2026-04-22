@@ -19,9 +19,15 @@
         <tbody id="flower-data"></tbody>
     </table>
 
+    <h2>Orders</h2>
+
     <button onclick="slow_query()">slow query</button>
     <button onclick="optimized_query()">fast query</button>
     <div id="queryresult"></div>
+    <button id="prev_page_btn" onclick="switch_orders_page(-1)" disabled>prev page</button>
+    <button id="next_page_btn" onclick="switch_orders_page(+1)" disabled>next page</button>
+    <span id="queryresult_showing"></span>
+    <table id="queryresult_table"></table>
 
     <dialog id="water_flower_modal">
         <h3>Water <span id="water_flower_modal_name"></h3>
@@ -90,18 +96,66 @@
                 });
         }
 
-        function do_query(endpoint) {
-            fetch(endpoint)
-                .then(response => {
-                    if (response.status == 200)
-                        response.json().then(data => {
-                            console.log(data);
-                            queryresult.innerText = "success: " + data;
-                        });
-                    else
-                        queryresult.innerText = "failure (" + response.status + ")";
 
+
+        let order_keys = ["order_id", "order_date", "customer_name", "customer_email", "flower_name"];
+        let order_results = [];
+        let orders_per_page = 50;
+        let orders_page = 1;
+
+        function populate_headers(table, keys, data) {
+            let cols = "";
+            keys.forEach(key => cols += `<th>${key}</th>`);
+            table.innerHTML += `<tr>${cols}</tr>`;
+        }
+
+        function populate_row(table, keys, data) {
+            let cols = "";
+            keys.forEach(key => cols += `<td>${data[key]}</td>`);
+            table.innerHTML += `<tr>${cols}</tr>`;
+        }
+
+        function switch_orders_page(delta) {
+            orders_page += delta;
+            let pages = Math.ceil(order_results.length / orders_per_page);
+            if (orders_page > pages) orders_page = pages;
+            if (orders_page < 1) orders_page = 1;
+
+            queryresult_table.innerHTML = "";
+            populate_headers(queryresult_table, order_keys);
+
+            let start_index = orders_per_page * (orders_page - 1);
+            let end_index = start_index + orders_per_page;
+
+            queryresult_showing.innerText = "page " + orders_page + "/" + pages + " (" + (start_index + 1) + "-" + Math.min(end_index, order_results.length) + ")";
+            order_results
+                .slice(start_index, end_index)
+                .forEach(row => populate_row(queryresult_table, order_keys, row));
+
+            next_page_btn.disabled = end_index >= order_results.length;
+            prev_page_btn.disabled = start_index <= 0;
+
+        }
+
+        function do_query(endpoint) {
+            queryresult.innerText = "query running...";
+            order_results = [];
+            orders_page = 1;
+            queryresult_table.innerHTML = "";
+
+            fetch(endpoint).then(response => {
+                if (response.status != 200) {
+                    queryresult.innerText = "failure (" + response.status + ")";
+                    return;
+                }
+
+                queryresult.innerText = "success";
+                response.json().then(data => {
+                    // paginated for client performance reasons, ironically the DOM is the bottleneck lol
+                    order_results = data;
+                    switch_orders_page(0);
                 });
+            });
         }
 
         function slow_query() {
