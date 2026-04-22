@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flower Watering Status</title>
+</head>
+<style>
+    th, td {
+        background-color: #d3d3d3;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid black;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    input {
+        width: 100%;
+    }
+</style>
+
+<body style="font-family: Arial, sans-serif; background-color: #b0b0b0; color: #000;">
+
+    <h2 style="text-align: center;">Flower Watering Status - Team 12</h2>
+    <table style="border-collapse: collapse; width: 100%;">
+        <!-- Table Headers -->
+        <tr>
+            <th>Name</th>
+            <th>Last Watered</th>
+            <th>Water Level</th>
+            <th>Minimum Water Required</th>
+            <th>Needs Watering</th>
+            <th>Actions</th>
+        </tr>
+        <!-- Table Rows -->
+        <tbody id="flower-data"></tbody>
+    </table><br><br>
+
+    <!-- Add Flower Form -->
+    <div style="width: 100%;">
+        <form onsubmit="addFlower(event)" style="margin: 0 auto; width: 20%; border: 1px solid black; border-radius: 8px; padding: 20px; padding-top: 0%; background-color: #f2f2f2;">
+            
+            <!-- Form Title -->
+            <h3 style="text-align: center; padding-top: 0px;">Add a New Flower</h3>
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;">
+                <!-- Name -->
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <!-- Date Last Watered -->
+                <label for="last_watered">Date Last Watered:</label>
+                <input type="date" id="last_watered" name="last_watered" required>
+                <!-- Water Level -->
+                <label for="water_level">Water Level (in):</label>
+                <input type="number" id="water_level" name="water_level" step="0.01" min="0" required>
+                <!-- Minimum Water Required -->
+                <label for="min_water_required">Minimum Water Required (in):</label>
+                <input type="number" id="min_water_required" name="min_water_required" step="0.01" min="0" required>
+            </div><br>
+
+            <!-- Submit -->
+            <button type="submit" style="display: block; margin: 0 auto; padding: 10px 20px; font-size: 16px;">Submit</button>
+
+        </form>
+    </div>
+
+    <script>
+        // Simulate water loss first, then load the table
+        function loadFlowers() {
+            // Fetch flower data from the server
+            fetch('/flowers')
+                .then(response => response.json())
+                .then(data => {
+                    // Generate table rows based on the fetched data
+                    let rows = "";
+                    data.forEach(flower => {
+                        const cellStyle = flower.needs_watering ? 'style="background-color: #ffcccc;"' : 'style="background-color: #d3d3d3;"'; // Cell turn red if watering is needed
+                        rows += `<tr>
+                            <td>${flower.name}</td>
+                            <td>${flower.last_watered}</td>
+                            <td>${flower.water_level} inches</td>
+                            <td>${flower.min_water_required} inches</td>
+                            <td ${cellStyle}>${flower.needs_watering ? "Yes" : "No"}</td>
+                            <td>
+                                <button onclick="deleteFlower(${flower.id})">Delete</button>
+                                <button onclick="waterFlower(${flower.id})">Water</button>
+                            </td>
+                        </tr>`;
+                    });
+                    // Insert the generated rows into the table body
+                    document.getElementById("flower-data").innerHTML = rows;
+                });
+        }
+
+        // Auto-simulate on page load, then display updated data
+        function simulateIfNeeded() {
+            // Check if already simulated today
+            const today = new Date().toISOString().split("T")[0]; // get current date in YYYY-MM-DD format
+            const lastSimulated = localStorage.getItem("lastSimulated"); // get last simulated date from localStorage
+
+            // If already simulated, just load flowers
+            if (lastSimulated === today) {
+                loadFlowers();
+            } 
+            // Else, simulate water loss and then load flowers
+            else {
+                fetch('/flowers/simulate', { method: 'POST' })
+                    .then(() => {
+                        localStorage.setItem("lastSimulated", today);
+                        loadFlowers();
+                    });
+            }
+        }
+
+        // Prompt user to add water to a flower by ID
+        function waterFlower(id) {
+            const newLevel = prompt("Add water (in):");
+            const today = new Date().toISOString().split("T")[0]; // get current date in YYYY-MM-DD format
+            if (newLevel === null) return; // user cancelled
+
+            // Send PUT request to update water level and last watered date
+            fetch(`/flowers/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    water_level: parseInt(newLevel) 
+                })
+            }).then(() => {
+                loadFlowers();
+            });
+        }
+
+        // Add a new flower using form data
+        function addFlower() {
+            event.preventDefault(); // prevent page full refresh on form submit
+            
+            // Get form values
+            const name = document.getElementById("name").value;
+            const lastWatered = document.getElementById("last_watered").value;
+            const waterLevel = parseFloat(document.getElementById("water_level").value);
+            const minWaterRequired = parseFloat(document.getElementById("min_water_required").value);
+
+            // Send POST request to add new flower
+            fetch('/flowers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    last_watered: lastWatered,
+                    water_level: waterLevel,
+                    min_water_required: minWaterRequired
+                })
+            }).then(() => {
+                loadFlowers();
+            });
+        }
+
+        // Delete flower by ID
+        function deleteFlower(id) {
+            // Send DELETE request to remove flower
+            fetch(`/flowers/${id}`, {
+                method: 'DELETE'
+            }).then(() => {
+                loadFlowers();
+            });
+        }
+
+        // Simulate water loss if needed, then load the flower data
+        simulateIfNeeded();
+    </script>
+
+</body>
+</html>
