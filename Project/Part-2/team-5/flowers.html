@@ -108,6 +108,15 @@
             color: #555;
             min-height: 20px;
         }
+        .sql-code {
+            font-family: monospace;
+            background: #a4d9a93b;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -139,11 +148,31 @@
     <div id="Part2">
         <h2>Slow vs Fast Query </h2>
         <div style="display: flex; gap: 2rem; align-items: center;">
+            <p class="sql-code"> 
+<b>SELECT</b> f.id, f.name, f.last_watered, f.water_level,f.min_water_required, 
+    c.name, o.order_date,
+    pgp_sym_encrypt(c.email::text, 'encrypt_key') <b>AS</b> encrypted_email
+<b>FROM</b> team5_flowers f
+<b>INNER</b> JOIN team5_orders o <b>ON</b> f.id = o.flower_id
+<b>CROSS JOIN</b> team5_customers c
+<b>WHERE LOWER</b>(f.name) <b>LIKE</b> '%e'
+<b>ORDER BY UPPER</b>(c.name) <b>DESC</b>;
+            </p>
             <button class="water-btn" onclick="runSlowQuery()">Run Slow Query</button>
             <p>Slow Query Time: <span id="slow_time">-</span></p>
         </div>
 
         <div style="display: flex; gap: 2rem; align-items: center; margin-top: 1rem;">
+            <p class="sql-code">
+<b>SELECT</b> f.id, f.name, f.last_watered, f.water_level, f.min_water_required,
+    c.name <b>AS</b> customer_name, o.order_date
+<b>FROM</b> team5_flowers f
+<b>INNER JOIN</b> team5_orders o <b>ON</b> f.id = o.flower_id
+<b>INNER JOIN</b> team5_customers c <b>ON</b> o.customer_id = c.id
+<b>WHERE</b> f.name <b>LIKE</b> 'E%'
+<b>ORDER BY</b> c.name <b>DESC</b>
+<b>LIMIT</b> 100;
+            </p>
             <button class="water-btn" onclick="runFastQuery()">Run Fast Query</button>
             <p>Fast Query Time: <span id="fast_time">-</span></p>
         </div>

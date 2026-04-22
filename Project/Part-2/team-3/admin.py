@@ -1,10 +1,11 @@
+import time
 import psycopg2
 from psycopg2.extras import execute_values
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_mCN6deqDx1iO@"
+    "ep-square-lab-ambs03t1-pooler.c-5.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 N_CUSTOMERS = 500
@@ -117,3 +118,88 @@ def update_water_levels():
     conn.commit()
     cur.close()
     conn.close()
+
+    #Slow and Fast Queries
+SLOW_QUERY = """
+WITH exploded AS (
+    SELECT
+        o.id AS order_id,
+        o.customer_id,
+        o.flower_id,
+        o.order_date,
+        c.name AS customer_name,
+        c.email,
+        f.name AS flower_name,
+        f.last_watered,
+        f.water_level,
+        f.min_water_required,
+        gs.n
+    FROM team3_orders o
+    JOIN team3_customers c
+        ON o.customer_id = c.id
+    JOIN team3_flowers f
+        ON o.flower_id = f.id
+    CROSS JOIN LATERAL generate_series(1, 3500) AS gs(n)
+    WHERE LOWER(c.name) LIKE '%customer%'
+      AND LOWER(f.name) LIKE '%' || LOWER(f.name) || '%'
+)
+SELECT DISTINCT ON (order_id)
+    order_id,
+    customer_id,
+    flower_id,
+    order_date,
+    customer_name,
+    email,
+    flower_name,
+    last_watered,
+    water_level,
+    min_water_required
+FROM exploded
+ORDER BY order_id, n
+"""
+
+FAST_QUERY = """
+SELECT
+    o.id AS order_id,
+    o.customer_id,
+    o.flower_id,
+    o.order_date,
+    c.name AS customer_name,
+    c.email,
+    f.name AS flower_name,
+    f.last_watered,
+    f.water_level,
+    f.min_water_required
+FROM team3_orders o
+JOIN team3_customers c
+    ON o.customer_id = c.id
+JOIN team3_flowers f
+    ON o.flower_id = f.id
+WHERE o.id > 0
+ORDER BY o.id
+LIMIT 50 OFFSET 0;
+"""
+
+def run_timed_query(sql_text):
+    conn = _get_conn()
+    cur = conn.cursor()
+
+    try:
+        start = time.perf_counter()
+        cur.execute(sql_text)
+        cur.fetchall()
+        end = time.perf_counter()
+
+        return {
+            "query": sql_text.strip(),
+            "execution_time_seconds": round(end - start, 4)
+        }
+    finally:
+        cur.close()
+        conn.close()
+
+def run_slow_query():
+    return run_timed_query(SLOW_QUERY)
+
+def run_fast_query():
+    return run_timed_query(FAST_QUERY)

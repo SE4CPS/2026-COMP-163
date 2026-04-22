@@ -1,44 +1,303 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Team 1 - Flower Shop API</title>
-    <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        button { margin: 6px 4px; padding: 8px 16px; cursor: pointer; }
-        .result { margin-top: 16px; }
-        .timing { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; }
-        .slow { color: #c0392b; }
-        .fast { color: #27ae60; }
-        pre { background: #f4f4f4; padding: 12px; border-radius: 4px; white-space: pre-wrap; font-size: 0.85em; }
-        table { border-collapse: collapse; width: 100%; margin-top: 8px; }
-        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
-        th { background: #f0f0f0; }
-    </style>
+<meta charset="UTF-8">
+<title>Team 1 — Flower Shop API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0b0d;
+  --surface:#111318;
+  --surface2:#181c24;
+  --border:#1e2535;
+  --border2:#2a3350;
+  --accent:#3b82f6;
+  --accent2:#60a5fa;
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+canvas#matrix{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0.045;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:32px 24px}
+
+/* header */
+.header{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.db-icon{display:flex;flex-direction:column;justify-content:center;gap:4px;width:24px}
+.db-icon span{display:block;height:3px;border-radius:2px;background:var(--accent)}
+.db-icon span:nth-child(2){width:75%}
+.db-icon span:nth-child(3){width:50%}
+.header h1{font-size:15px;font-weight:600;letter-spacing:0.06em}
+.live-badge{font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(34,197,94,0.15);color:#86efac;border:1px solid rgba(34,197,94,0.3);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.header-meta{margin-left:auto;font-size:10px;color:var(--muted)}
+
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 14px 12px;position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.metric.blue::before{background:var(--accent)}
+.metric.green::before{background:var(--green)}
+.metric.amber::before{background:var(--amber)}
+.metric-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.metric-val{font-size:22px;font-weight:600}
+.metric-val.c-blue{color:var(--accent2)}
+.metric-val.c-green{color:#4ade80}
+.metric-val.c-amber{color:#fbbf24}
+.metric-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.panel-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)}
+.panel-meta{font-size:10px;color:var(--muted)}
+.panel-body{padding:16px}
+
+/* buttons */
+.btn-row{display:flex;gap:10px}
+.btn{font-family:var(--mono);font-size:12px;font-weight:500;padding:9px 18px;border-radius:4px;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;gap:7px;background:var(--surface2);color:var(--text);transition:all 0.15s;letter-spacing:0.03em}
+.btn:hover{background:rgba(59,130,246,0.08);border-color:var(--accent);color:var(--accent2)}
+.btn:active{transform:scale(0.97)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn.slow{border-color:rgba(239,68,68,0.35);color:#f87171}
+.btn.slow:hover{background:rgba(239,68,68,0.08);border-color:var(--red)}
+.btn.fast{border-color:rgba(34,197,94,0.35);color:#4ade80}
+.btn.fast:hover{background:rgba(34,197,94,0.08);border-color:var(--green)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.btn.slow .dot{background:var(--red)}
+.btn.fast .dot{background:var(--green)}
+.spinner{width:13px;height:13px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;display:none;animation:spin 0.65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading .spinner{display:block}
+.loading .dot{display:none}
+
+/* result */
+#result-panel{display:none}
+.exec-row{display:flex;align-items:flex-start;gap:24px;margin-bottom:14px}
+.stat-block .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.exec-time{font-size:28px;font-weight:600}
+.exec-time.slow{color:#f87171}
+.exec-time.fast{color:#4ade80}
+.exec-badge{font-size:11px;padding:3px 10px;border-radius:3px;font-weight:500;margin-top:6px;display:inline-block}
+.exec-badge.slow{background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3)}
+.exec-badge.fast{background:rgba(34,197,94,0.15);color:#86efac;border:1px solid rgba(34,197,94,0.3)}
+
+/* progress */
+.progress-wrap{margin-bottom:16px}
+.progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;width:0;transition:width 0.7s cubic-bezier(.4,0,.2,1)}
+.progress-fill.slow{background:var(--red)}
+.progress-fill.fast{background:var(--green)}
+
+/* query plan */
+.plan-section{margin-bottom:14px}
+.section-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.plan-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px}
+.plan-row:last-child{border-bottom:none}
+.plan-node{padding:2px 9px;border-radius:3px;background:rgba(59,130,246,0.12);color:var(--accent2);border:1px solid rgba(59,130,246,0.2);min-width:105px;text-align:center;font-size:10px}
+.plan-arrow{color:var(--muted)}
+.plan-table{color:var(--text)}
+.plan-note{color:var(--muted);font-size:10px;margin-left:2px}
+.plan-cost{margin-left:auto;font-size:10px;padding:1px 7px;border-radius:2px;font-weight:500}
+.plan-cost.high{background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.plan-cost.low{background:rgba(34,197,94,0.12);color:#86efac;border:1px solid rgba(34,197,94,0.2)}
+
+/* sql */
+.sql-block{background:#0d1117;border:1px solid var(--border);border-radius:4px;padding:16px;font-size:12px;line-height:2;overflow-x:auto;tab-size:4}
+.kw{color:#79c0ff}
+.fn{color:#d2a8ff}
+.str{color:#a5d6ff}
+.op{color:#ff7b72}
+</style>
 </head>
 <body>
-    <h1>Flower Shop API</h1>
+<canvas id="matrix"></canvas>
+<div id="app">
 
-    <h2>Query Performance</h2>
-    <button onclick="runQuery('slow')">Run Slow Query</button>
-    <button onclick="runQuery('fast')">Run Fast Query</button>
+  <div class="header">
+    <div class="db-icon"><span></span><span></span><span></span></div>
+    <h1>flower_shop</h1>
+    <span class="live-badge">● LIVE</span>
+    <span class="header-meta">PostgreSQL 16.2 · team1_db · port 5432</span>
+  </div>
 
-    <div class="result" id="result" style="display:none">
-        <div class="timing" id="timing"></div>
-        <h3>SQL Query</h3>
-        <pre id="query-text"></pre>
+  <div class="metrics">
+    <div class="metric blue">
+      <div class="metric-label">Connection</div>
+      <div class="metric-val c-blue" style="font-size:14px;margin-top:4px">● Connected</div>
+      <div class="metric-sub">SSL enabled</div>
     </div>
+    <div class="metric green">
+      <div class="metric-label">Queries Run</div>
+      <div class="metric-val c-green" id="query-count">0</div>
+      <div class="metric-sub">this session</div>
+    </div>
+    <div class="metric amber">
+      <div class="metric-label">Avg Exec Time</div>
+      <div class="metric-val c-amber" id="avg-time">—</div>
+      <div class="metric-sub">seconds</div>
+    </div>
+  </div>
 
-    <script>
-        async function runQuery(type) {
-            const res = await fetch(`/${type}-query`);
-            const data = await res.json();
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Query Runner</span>
+      <span class="panel-meta">team1_orders · team1_customers · team1_flowers</span>
+    </div>
+    <div class="panel-body">
+      <div class="btn-row">
+        <button class="btn slow" id="btn-slow" onclick="runQuery('slow')">
+          <span class="dot"></span><div class="spinner" id="spin-slow"></div>
+          Run Slow Query
+        </button>
+        <button class="btn fast" id="btn-fast" onclick="runQuery('fast')">
+          <span class="dot"></span><div class="spinner" id="spin-fast"></div>
+          Run Fast Query
+        </button>
+      </div>
+    </div>
+  </div>
 
-            const timingEl = document.getElementById('timing');
-            timingEl.textContent = `Execution time: ${data.execution_time}s`;
-            timingEl.className = 'timing ' + (type === 'slow' ? 'slow' : 'fast');
+  <div class="panel" id="result-panel">
+    <div class="panel-head">
+      <span class="panel-title" id="result-label">Execution Result</span>
+      <span class="exec-badge" id="exec-badge-head">—</span>
+    </div>
+    <div class="panel-body">
 
-            document.getElementById('query-text').textContent = data.query.trim();
-            document.getElementById('result').style.display = 'block';
-        }
-    </script>
+      <div class="exec-row">
+        <div class="stat-block">
+          <div class="stat-label">Execution Time</div>
+          <div class="exec-time" id="exec-time">—</div>
+        </div>
+        <div class="stat-block" style="margin-top:2px">
+          <div class="stat-label">Path</div>
+          <span class="exec-badge" id="exec-badge">—</span>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span id="progress-label-left">Query cost</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <div class="plan-section">
+        <div class="section-label">Query Plan</div>
+        <div id="plan-rows"></div>
+      </div>
+
+      <div class="section-label">SQL</div>
+      <div class="sql-block" id="sql-display"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* matrix rain */
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const chars = 'アイウエオカキクケコSELECTFROMWHEREJOININDEXQUERY01';
+let drops = [];
+function initDrops(){ drops = Array(Math.floor(canvas.width/14)).fill(1).map(()=>Math.floor(Math.random()*60)); }
+initDrops(); window.addEventListener('resize', initDrops);
+setInterval(()=>{
+  ctx.fillStyle='rgba(10,11,13,0.05)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#3b82f6'; ctx.font='12px JetBrains Mono,monospace';
+  drops.forEach((y,i)=>{
+    ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*14, y*14);
+    if(y*14>canvas.height && Math.random()>0.975) drops[i]=0; drops[i]++;
+  });
+},55);
+
+/* query logic */
+let queryCount=0, totalTime=0;
+const slowPlan=[
+  {node:'Seq Scan',    table:'team1_flowers',   note:'no index on name',  cost:'high'},
+  {node:'Hash Join',   table:'→ team1_orders',  note:'full table hash',   cost:'high'},
+  {node:'Hash Join',   table:'→ customers',     note:'full table hash',   cost:'high'},
+  {node:'Sort',        table:'ORDER BY f.name', note:'external sort',     cost:'high'},
+];
+const fastPlan=[
+  {node:'Index Scan',  table:'team1_flowers',   note:'idx_flowers_name',  cost:'low'},
+  {node:'Nested Loop', table:'→ team1_orders',  note:'index join',        cost:'low'},
+  {node:'Nested Loop', table:'→ customers',     note:'index join',        cost:'low'},
+  {node:'Sort',        table:'ORDER BY f.name', note:'in-memory sort',    cost:'low'},
+];
+
+function highlight(sql){
+  return sql
+    .replace(/\b(SELECT|FROM|JOIN|ON|WHERE|ORDER BY|AND|AS|LIKE)\b/g, s=>`<span class="kw">${s}</span>`)
+    .replace(/\bLOWER\b/g, '<span class="fn">LOWER</span>')
+    .replace(/'[^']*'/g, s=>`<span class="str">${s}</span>`)
+    .replace(/\b([ocf])\./g, (m,p)=>`<span class="op">${p}</span>.`);
+}
+
+function renderPlan(plan){
+  document.getElementById('plan-rows').innerHTML = plan.map(p=>`
+    <div class="plan-row">
+      <div class="plan-node">${p.node}</div>
+      <span class="plan-arrow">→</span>
+      <span class="plan-table">${p.table}</span>
+      <span class="plan-note">(${p.note})</span>
+      <span class="plan-cost ${p.cost}">${p.cost==='high'?'HIGH COST':'LOW COST'}</span>
+    </div>`).join('');
+}
+
+async function runQuery(type){
+  const btnSlow=document.getElementById('btn-slow'), btnFast=document.getElementById('btn-fast');
+  const activeBtn=document.getElementById('btn-'+type);
+  activeBtn.classList.add('loading');
+  btnSlow.disabled=true; btnFast.disabled=true;
+  document.getElementById('result-panel').style.display='none';
+
+  try{
+    const res = await fetch('/'+type+'-query');
+    const data = await res.json();
+    const t = parseFloat(data.execution_time);
+    queryCount++; totalTime += t;
+    document.getElementById('query-count').textContent = queryCount;
+    document.getElementById('avg-time').textContent = (totalTime/queryCount).toFixed(2)+'s';
+
+    const isSlow = type==='slow';
+    const cls = isSlow ? 'slow' : 'fast';
+
+    document.getElementById('result-label').textContent = isSlow ? 'Slow Query — Result' : 'Fast Query — Result';
+    document.getElementById('exec-badge-head').textContent = isSlow ? 'SLOW PATH' : 'FAST PATH';
+    document.getElementById('exec-badge-head').className = 'exec-badge '+cls;
+    document.getElementById('exec-time').textContent = t+'s';
+    document.getElementById('exec-time').className = 'exec-time '+cls;
+    document.getElementById('exec-badge').textContent = isSlow ? 'SLOW PATH' : 'FAST PATH';
+    document.getElementById('exec-badge').className = 'exec-badge '+cls;
+
+    const fill = document.getElementById('progress-fill');
+    fill.className = 'progress-fill '+cls;
+    const pct = isSlow ? Math.min(Math.round(t*80+20), 100) : Math.max(Math.round(t*200), 6);
+    document.getElementById('progress-pct').textContent = pct+'%';
+    document.getElementById('progress-label-left').textContent = isSlow ? 'Relative query cost' : 'Relative query cost';
+    fill.style.width='0'; setTimeout(()=>{ fill.style.width=pct+'%'; }, 80);
+
+    renderPlan(isSlow ? slowPlan : fastPlan);
+    document.getElementById('sql-display').innerHTML = highlight(data.query.trim());
+    document.getElementById('result-panel').style.display='block';
+
+  } catch(e){ console.error(e); }
+  finally{
+    activeBtn.classList.remove('loading');
+    btnSlow.disabled=false; btnFast.disabled=false;
+  }
+}
+</script>
 </body>
 </html>

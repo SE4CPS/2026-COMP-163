@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 import admin
 from frontend import frontend_bp
 
@@ -7,8 +7,19 @@ def create_app():
 
     admin.init_db()
     admin.seed_data()
+    admin.create_indexes()
+
 
     app.register_blueprint(frontend_bp)
+
+    @app.route("/slow_query", methods=["GET"])
+    def slow_query():
+        return jsonify(admin.run_slow_query())
+
+    @app.route("/fast_query", methods=["GET"])
+    def fast_query():
+        return jsonify(admin.run_fast_query())
+    
     return app
 
 app = create_app()

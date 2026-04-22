@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Flower Watering Status</title>
+    <meta name="color-scheme" content="light dark">
+    <style>
+        .card {
+            padding: 12px;
+            border-style: solid;
+            margin: 12px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h2>Flower Watering Status</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Last Watered</th>
+            <th>Water Level</th>
+            <th>Needs Watering</th>
+            <th>Actions</th>
+        </tr>
+        <tbody id="flower-data"></tbody>
+    </table>
+
+    <h2>Orders</h2>
+
+    <label for="benchmark_mode">benchmark</label>
+    <input type="checkbox" id="benchmark_mode" checked>
+    <div class="card">
+        <button onclick="slow_query()">slow query</button>
+        <pre>SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name, o.customer_id, o.flower_id
+FROM team9_orders o
+CROSS JOIN team9_customers c
+CROSS JOIN team9_flowers f
+ORDER BY o.order_date DESC;</pre>
+    </div>
+
+    <div class="card">
+        <button onclick="optimized_query()">fast query</button>
+        <pre>SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name
+FROM team9_orders o
+JOIN team9_customers c ON o.customer_id = c.id
+JOIN team9_flowers f ON o.flower_id = f.id
+ORDER BY o.order_date DESC;</pre>
+    </div>
+
+    <div class="card">
+        <span>Result</span>
+        <pre id="queryresult"></pre>
+
+        <br>
+
+        <button id="prev_page_btn" onclick="switch_orders_page(-1)" disabled>prev page</button>
+        <button id="next_page_btn" onclick="switch_orders_page(+1)" disabled>next page</button>
+        <span id="queryresult_showing"></span>
+
+        <table id="queryresult_table"></table>
+    </div>
+
+    <dialog id="water_flower_modal">
+        <h3>Water <span id="water_flower_modal_name"></h3>
+        <p>Note: This flower needs at least <span id="water_flower_modal_min"></span> inches of water for survival.</p>
+        <form id="water_flower_form">
+            <input type="number" id="water_flower_flower_id" min="0" required style="display: none;">
+            <label for="water_flower_water_level">water level (inches): </label><input type="number" id="water_flower_water_level" min="0" required>
+            <br>
+            <button type="submit">submit</button>
+        </form>
+        <button onclick="water_flower_modal.close()">cancel</button>
+    </dialog>
+
+    <script>
+        let flowers = {};
+
+        function water_flower(id, params) {
+            return fetch(`/flowers/water/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(params),
+                headers: { "Content-type": "application/json; charset=UTF-8" }
+            });
+        }
+
+        water_flower_form.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            let flower_id = Number(water_flower_flower_id.value);
+            let water_level = Number(water_flower_water_level.value);
+
+            water_flower(flower_id, { water_level }).then(response => {
+                if (response.status != 200) {
+                    alert('failed to update: ' + response.status);
+                    return;
+                }
+                water_flower_modal.close();
+                fetch_flower_list();
+            });
+        });
+
+        function show_water_flower_modal(flower_id) {
+            flower = flowers[flower_id];
+            water_flower_modal_name.innerText = flower.name;
+            water_flower_modal_min.innerText = flower.min_water_required;
+            water_flower_flower_id.value = flower_id;
+
+            water_flower_modal.showModal();
+        }
+
+        function fetch_flower_list() {
+            fetch('/flowers')
+                .then(response => response.json())
+                .then(data => {
+                    let rows = "";
+                    data.forEach(flower => {
+                        rows += `<tr>
+                            <td>${flower.name}</td>
+                            <td>${flower.last_watered}</td>
+                            <td>${flower.water_level} inches</td>
+                            <td>${flower.needs_watering ? "Yes" : "No"}</td>
+                            <td><button onclick="show_water_flower_modal(${flower.id})">water</button></td>
+                        </tr>`;
+                        flowers[flower.id] = flower;
+                    });
+                    document.getElementById("flower-data").innerHTML = rows;
+                });
+        }
+
+
+
+        let order_keys = ["order_id", "order_date", "customer_name", "customer_email", "flower_name"];
+        let order_results = [];
+        let orders_per_page = 50;
+        let orders_page = 1;
+
+        function populate_headers(table, keys, data) {
+            let cols = "";
+            keys.forEach(key => cols += `<th>${key}</th>`);
+            table.innerHTML += `<tr>${cols}</tr>`;
+        }
+
+        function populate_row(table, keys, data) {
+            let cols = "";
+            keys.forEach(key => cols += `<td>${data[key]}</td>`);
+            table.innerHTML += `<tr>${cols}</tr>`;
+        }
+
+        function switch_orders_page(delta) {
+            orders_page += delta;
+            let pages = Math.ceil(order_results.length / orders_per_page);
+            if (orders_page > pages) orders_page = pages;
+            if (orders_page < 1) orders_page = 1;
+
+            queryresult_table.innerHTML = "";
+            populate_headers(queryresult_table, order_keys);
+
+            let start_index = orders_per_page * (orders_page - 1);
+            let end_index = start_index + orders_per_page;
+
+            queryresult_showing.innerText = "page " + orders_page + "/" + pages + " (" + (start_index + 1) + "-" + Math.min(end_index, order_results.length) + ")";
+            order_results
+                .slice(start_index, end_index)
+                .forEach(row => populate_row(queryresult_table, order_keys, row));
+
+            next_page_btn.disabled = end_index >= order_results.length;
+            prev_page_btn.disabled = start_index <= 0;
+
+        }
+
+        function do_query(endpoint, benchmark) {
+            queryresult.innerText = "query running...";
+            order_results = [];
+            orders_page = 1;
+            queryresult_table.innerHTML = "";
+
+            if (benchmark) endpoint += "?benchmark=1";
+
+            fetch(endpoint).then(response => {
+                if (response.status != 200) {
+                    queryresult.innerText = "failure (" + response.status + ")";
+                    return;
+                }
+
+                queryresult.innerText = "success";
+                response.json().then(data => {
+                    if (benchmark) {
+                        queryresult.innerText += "\n" + data.text;
+                    } else {
+                        // paginated for client performance reasons, ironically the DOM is the bottleneck lol
+                        order_results = data;
+                        switch_orders_page(0);
+                    }
+                });
+            });
+        }
+
+        function slow_query() {
+            do_query("/slow_query", benchmark_mode.checked);
+        }
+
+        function optimized_query() {
+            do_query("/optimized_query", benchmark_mode.checked);
+        }
+
+        fetch_flower_list();
+
+    </script>
+</body>
+
+</html>

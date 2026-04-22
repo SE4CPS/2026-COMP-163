@@ -1,15 +1,15 @@
 import psycopg2
 from datetime import date
+import time
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_kasM4eQ9VOzL@"
+    "ep-lucky-cherry-anpfkxkt-pooler.c-6.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)
-
 
 def insert_flower(name, last_watered, water_level, min_water_required):
     conn = _get_conn()
@@ -30,7 +30,6 @@ def insert_flower(name, last_watered, water_level, min_water_required):
     finally:
         cur.close()
         conn.close()
-
 
 def select_flower(id=None):
     conn = _get_conn()
@@ -85,7 +84,6 @@ def select_flower(id=None):
         cur.close()
         conn.close()
 
-
 def update_flower(id, name, last_watered, water_level, min_water_required):
     conn = _get_conn()
     cur = conn.cursor()
@@ -108,7 +106,6 @@ def update_flower(id, name, last_watered, water_level, min_water_required):
     finally:
         cur.close()
         conn.close()
-
 
 def delete_flower(id):
     conn = _get_conn()
@@ -146,6 +143,67 @@ def water_flower(id):
         conn.rollback()
         print("Watering error:", e)
         return False
+    finally:
+        cur.close()
+        conn.close()
+
+SLOW_SQL = """
+SELECT *
+FROM team11_orders o
+JOIN team11_customers c ON o.customer_id = c.id
+JOIN team11_flowers f ON o.flower_id = f.id
+CROSS JOIN (
+    SELECT id FROM team11_customers
+    WHERE LOWER(name) LIKE '%customer%'
+    LIMIT 2
+) AS c2
+WHERE LOWER(c.name) LIKE '%customer%'
+ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;
+"""
+ 
+FAST_SQL = """
+SELECT
+    o.id,
+    o.order_date,
+    c.name AS customer_name,
+    c.email,
+    f.name AS flower_name
+FROM team11_orders o
+JOIN team11_customers c ON o.customer_id = c.id
+JOIN team11_flowers f ON o.flower_id = f.id
+WHERE c.name LIKE 'Customer%'
+ORDER BY o.id
+LIMIT 100 OFFSET 0;
+"""
+
+def slow_query():
+    conn = _get_conn()
+    cur = conn.cursor()
+    start = time.time()
+    try:
+        cur.execute(SLOW_SQL)
+        cur.fetchall()
+        elapsed = time.time() - start
+        return {"sql": SLOW_SQL.strip(), "elapsed": round(elapsed, 4)}
+    except Exception as e:
+        elapsed = time.time() - start
+        return {"sql": SLOW_SQL.strip(), "elapsed": round(elapsed, 4), "error": str(e)}
+    finally:
+        cur.close()
+        conn.close()
+
+def fast_query():
+    conn = _get_conn()
+    cur = conn.cursor()
+    start = time.time()
+    try:
+        cur.execute(FAST_SQL)
+        cur.fetchall()
+        elapsed = time.time() - start
+        return {"sql": FAST_SQL.strip(), "elapsed": round(elapsed, 4)}
+    except Exception as e:
+        elapsed = time.time() - start
+        return {"sql": FAST_SQL.strip(), "elapsed": round(elapsed, 4), "error": str(e)}
     finally:
         cur.close()
         conn.close()
