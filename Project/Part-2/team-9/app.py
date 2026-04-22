@@ -105,6 +105,79 @@ def delete_flower(id):
     conn.close()
     return jsonify({"message": "Flower deleted successfully!"})  
 
+# slow query (part 2)
+@app.route('/slow_query', methods=['GET'])
+def slow_query():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name, o.customer_id, o.flower_id
+        FROM team9_orders o
+        CROSS JOIN team9_customers c
+        CROSS JOIN team9_flowers f;
+    """)
+
+    results = cur.fetchall()
+    orders = []
+    for customer_id, customer_name, customer_email, order_id, order_date, flower_id, flower_name, order_customer_id, order_flower_id in results:
+        if flower_id != order_flower_id or customer_id != order_customer_id:
+            continue
+
+        order = {
+            "customer_id": customer_id, 
+            "customer_name": customer_name, 
+            "customer_email": customer_email, 
+            "order_id": order_id, 
+            "order_date": order_date, 
+            "flower_id": flower_id, 
+            "flower_name": flower_name, 
+        }
+
+        print(order)
+        orders.append(order)
+
+    cur.close()
+    conn.close()
+    return jsonify(orders)
+
+# slow query (part 2)
+@app.route('/optimized_query', methods=['GET'])
+def optimized_query():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # TODO: further optimization
+    cur.execute("""
+        SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name
+        FROM team9_orders o
+        CROSS JOIN team9_customers c
+        CROSS JOIN team9_flowers f
+        WHERE o.customer_id = c.id AND o.flower_id = f.id;
+    """)
+
+    results = cur.fetchall()
+    orders = []
+    for customer_id, customer_name, customer_email, order_id, order_date, flower_id, flower_name in results:
+
+        order = {
+            "customer_id": customer_id, 
+            "customer_name": customer_name, 
+            "customer_email": customer_email, 
+            "order_id": order_id, 
+            "order_date": order_date, 
+            "flower_id": flower_id, 
+            "flower_name": flower_name, 
+        }
+
+        print(order)
+        orders.append(order)
+
+    cur.close()
+    conn.close()
+    return jsonify(orders)
+
+
 @app.route('/')
 def home():
     return send_file('flowers.html')
