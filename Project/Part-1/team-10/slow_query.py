@@ -37,8 +37,8 @@ if __name__ == "__main__":
 				print("Running query")
 				rows = backend.slow()
 				print(len(rows))
-				# for r in rows:
-				# 	print(r)
+				for r in rows:
+					print(r)
 			case _:
 				print("Invalid choice")
 				continue

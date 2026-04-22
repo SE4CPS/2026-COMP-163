@@ -161,6 +161,18 @@ PAGE = """
     </form>
   </div>
 
+  <div class="card">
+    <h3>Queries</h3>
+    <div class="row">
+      <form method="POST" action="{{ url_for('frontend.slow_query') }}">
+        <button type="submit" class="btn-outline">Run Slow Query</button>
+      </form>
+      <form method="POST" action="{{ url_for('frontend.fast_query') }}">
+        <button type="submit" class="btn-primary">Run Fast Query</button>
+      </form>
+    </div>
+  </div>
+
   {% if edit_item %}
   <div class="card">
     <h3>Edit — {{ edit_item.name }}</h3>
@@ -258,4 +270,14 @@ def water(id):
 @frontend_bp.route("/delete/<int:id>", methods=["POST"])
 def delete(id):
     backend.delete_flower(id)
+    return redirect(url_for("frontend.index"))
+
+@frontend_bp.route("/slow", methods=["POST"])
+def slow_query():
+    backend.slow()
+    return redirect(url_for("frontend.index"))
+
+@frontend_bp.route("/fast", methods=["POST"])
+def fast_query():
+    backend.fast()
     return redirect(url_for("frontend.index"))
