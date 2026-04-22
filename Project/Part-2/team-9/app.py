@@ -117,7 +117,8 @@ def slow_query():
         SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name, o.customer_id, o.flower_id
         FROM team9_orders o
         CROSS JOIN team9_customers c
-        CROSS JOIN team9_flowers f;
+        CROSS JOIN team9_flowers f
+        ORDER BY o.order_date DESC;
     """
 
     if benchmark:
@@ -163,13 +164,12 @@ def optimized_query():
 
     benchmark = request.args.get('benchmark', 0)
 
-    # TODO: further optimization
     query = """
         SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name
         FROM team9_orders o
-        CROSS JOIN team9_customers c
-        CROSS JOIN team9_flowers f
-        WHERE o.customer_id = c.id AND o.flower_id = f.id;
+        JOIN team9_customers c ON o.customer_id = c.id
+        JOIN team9_flowers f ON o.flower_id = f.id
+        ORDER BY o.order_date DESC;
     """
 
     if benchmark:
