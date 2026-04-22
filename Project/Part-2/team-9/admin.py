@@ -29,6 +29,10 @@ def init_db():
             flower_id INT REFERENCES team9_flowers(id),
             order_date DATE
         );
+
+        CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON team9_orders(customer_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_flower_id ON team9_orders(flower_id);
+        CREATE INDEX IF NOT EXISTS idx_flowers_name ON team9_flowers(name);
     """)
     conn.commit()
     cur.close()
