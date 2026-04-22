@@ -1,10 +1,10 @@
 import psycopg2
 from flask import request, jsonify
+import admin
+import time
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_XUjioFP10Nyk@ep-empty-mud-anusqxyo-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 )
 
 def get_db_connection():
@@ -25,7 +25,6 @@ def apply_watering_loss():
     conn.close()
 
 def register_routes(bp):
-    # Get all flowers
     @bp.route('/flowers', methods=['GET'])
     def get_flowers():
         apply_watering_loss()
@@ -75,7 +74,6 @@ def register_routes(bp):
             "needs_watering": f[3] < f[4]
         } for f in flowers])
 
-    # Add a flower
     @bp.route('/flowers', methods=['POST'])
     def add_flower():
         data = request.json
@@ -97,7 +95,6 @@ def register_routes(bp):
 
         return jsonify({"message": "Flower added successfully!"})
 
-    # Update a flower by ID
     @bp.route('/flowers/<int:id>', methods=['PUT'])
     def update_flower(id):
         data = request.json
@@ -120,7 +117,6 @@ def register_routes(bp):
 
         return jsonify({"message": "Flower updated successfully!"})
 
-    # Delete a flower by ID
     @bp.route('/flowers/<int:id>', methods=['DELETE'])
     def delete_flower(id):
         conn = get_db_connection()
@@ -134,3 +130,29 @@ def register_routes(bp):
         conn.close()
 
         return jsonify({"message": "Flower deleted successfully!"})
+
+    @bp.route('/benchmark/slow', methods=['GET'])
+    def run_slow_query():
+        started = time.time()
+        result = admin.slow_query()
+        end_to_end = time.time() - started
+
+        return jsonify({
+            "query_type": "slow",
+            "sql": result["sql"],
+            "db_time_seconds": result["elapsed_seconds"],
+            "end_to_end_seconds": round(end_to_end, 4)
+        })
+
+    @bp.route('/benchmark/fast', methods=['GET'])
+    def run_fast_query():
+        started = time.time()
+        result = admin.fast_query()
+        end_to_end = time.time() - started
+
+        return jsonify({
+            "query_type": "fast",
+            "sql": result["sql"],
+            "db_time_seconds": result["elapsed_seconds"],
+            "end_to_end_seconds": round(end_to_end, 4)
+        })

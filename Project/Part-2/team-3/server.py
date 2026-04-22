@@ -1,16 +1,14 @@
 from flask import Flask
 import admin
-
 from frontend import frontend_bp
 
 def create_app():
     app = Flask(__name__)
 
-    admin.init_db() # create tables
-    admin.all_data() # insert data into tables
+    admin.init_db()
+    admin.seed_data()
+    admin.create_indexes()
 
-    # admin.print_customers() # verify customers
-    # admin.print_orders() # verify orders
 
     app.register_blueprint(frontend_bp)
     return app

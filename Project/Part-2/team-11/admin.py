@@ -1,9 +1,9 @@
 import psycopg2
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_kasM4eQ9VOzL@"
+    "ep-lucky-cherry-anpfkxkt-pooler.c-6.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def _get_conn():
@@ -12,7 +12,7 @@ def _get_conn():
 def init_db():
     conn = _get_conn()
     cur = conn.cursor()
-    # cur.execute("DROP TABLE IF EXISTS team11_flowers;") -- applies new constraints if changes made
+    ## cur.execute("DROP TABLE IF EXISTS team11_flowers;") # -- applies new constraints if changes made
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team11_flowers (
             id SERIAL PRIMARY KEY,
@@ -23,16 +23,16 @@ def init_db():
         );
     """)
 
-    # cur.execute("DROP TABLE IF EXISTS team11_customers;") -- applies new constraints if changes made
+    ## cur.execute("DROP TABLE IF EXISTS team11_customers;") # -- applies new constraints if changes made
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team11_customers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100),
-            email VARCHAR(100)
+            email VARCHAR(100) UNIQUE
         );
     """)
 
-    # cur.execute("DROP TABLE IF EXISTS team11_orders;") -- applies new constraints if changes made
+    ## cur.execute("DROP TABLE IF EXISTS team11_orders;") # -- applies new constraints if changes made
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team11_orders (
             id SERIAL PRIMARY KEY,
@@ -40,6 +40,12 @@ def init_db():
             flower_id INT REFERENCES team11_flowers(id),
             order_date DATE
         );
+    """)
+
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON team11_orders(customer_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_flower_id ON team11_orders(flower_id);
+        CREATE INDEX IF NOT EXISTS idx_flowers_name ON team11_flowers(name);
     """)
 
     conn.commit()
@@ -69,7 +75,8 @@ def customer_data():
         SELECT 
                 'Customer_' || g,
                 'customer_' || g || '@example.com'
-        FROM generate_series(1, 500) AS g;
+        FROM generate_series(1, 500) AS g
+                ON CONFLICT (email) DO NOTHING;
     """)
     conn.commit()
     cur.close()
@@ -91,9 +98,20 @@ def order_data():
     conn.close()
 
 def all_data():
-    seed_data()
-    customer_data()
-    order_data()
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM team11_customers;")
+    count = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+
+    if count == 0:
+        seed_data()
+        customer_data()
+        order_data()
+        print("Data seeded.")
+    else:
+        print(f"Data already exists ({count} customers), skipping seed.")
 
 def print_customers(limit=20):
     conn = _get_conn()
