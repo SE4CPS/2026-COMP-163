@@ -38,41 +38,82 @@
     <!-- Add Flower Form -->
     <div style="width: 100%;">
         <form onsubmit="addFlower(event)" style="margin: 0 auto; width: 20%; border: 1px solid black; border-radius: 8px; padding: 20px; padding-top: 0%; background-color: #f2f2f2;">
-            
-            <!-- Form Title -->
             <h3 style="text-align: center; padding-top: 0px;">Add a New Flower</h3>
             <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;">
-                <!-- Name -->
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required>
-                <!-- Date Last Watered -->
                 <label for="last_watered">Date Last Watered:</label>
                 <input type="date" id="last_watered" name="last_watered" required>
-                <!-- Water Level -->
                 <label for="water_level">Water Level (in):</label>
                 <input type="number" id="water_level" name="water_level" step="0.01" min="0" required>
-                <!-- Minimum Water Required -->
                 <label for="min_water_required">Minimum Water Required (in):</label>
                 <input type="number" id="min_water_required" name="min_water_required" step="0.01" min="0" required>
             </div><br>
-
-            <!-- Submit -->
             <button type="submit" style="display: block; margin: 0 auto; padding: 10px 20px; font-size: 16px;">Submit</button>
-
         </form>
+    </div><br><br>
+
+    <!-- Performance Section -->
+    <div style="display: flex; gap: 20px; padding: 0 20px;">
+
+        <!-- Slow Query -->
+        <div style="flex: 1; border: 1px solid black; border-radius: 8px; padding: 20px; background-color: #f2f2f2;">
+            <h3>Slow Query</h3>
+            <button onclick="runQuery('slow_query')" id="slow_query-btn" style="padding: 8px 16px; font-size: 14px;">▶ Run</button>
+            <!-- Live timer -->
+            <!-- SQL Query -->
+            <pre style="margin-top: 12px; font-size: 12px; background-color: #e0e0e0; border: 1px solid #aaa; padding: 10px; border-radius: 4px; white-space: pre-wrap;">
+SELECT c.name, c.email, f.name, o.order_date
+FROM team12_orders o
+JOIN team12_customers c ON o.customer_id = c.id
+JOIN team12_flowers f   ON o.flower_id = f.id
+CROSS JOIN generate_series(1, 35) AS n
+WHERE LOWER(c.name) LIKE '%customer%'
+ORDER BY LOWER(f.name), LOWER(c.name), o.order_date DESC;
+            </pre>
+            <span id="slow_query-timer" style="display: none; margin-left: 12px; font-size: 20px; font-family: monospace;">0.000s</span>
+            <!-- Results (shown after query completes) -->
+            <div id="slow_query-result" style="display: none; margin-top: 10px;">
+                <div id="slow_query-time" style="font-size: 14px;"></div>
+                <div id="slow_query-rows" style="font-size: 14px;"></div>
+            </div>
+        </div>
+
+        <!-- Fast Query -->
+        <div style="flex: 1; border: 1px solid black; border-radius: 8px; padding: 20px; background-color: #f2f2f2;">
+            <h3>Fast Query</h3>
+            <button onclick="runQuery('fast_query')" id="fast_query-btn" style="padding: 8px 16px; font-size: 14px;">▶ Run</button>
+            <!-- SQL Query -->
+            <pre style="margin-top: 12px; font-size: 12px; background-color: #e0e0e0; border: 1px solid #aaa; padding: 10px; border-radius: 4px; white-space: pre-wrap;">
+SELECT o.id, o.order_date, c.name, c.email, f.name
+FROM team12_orders o
+JOIN team12_customers c ON o.customer_id = c.id
+JOIN team12_flowers f   ON o.flower_id = f.id
+WHERE c.name LIKE 'Customer_%'
+ORDER BY c.name, o.order_date DESC
+LIMIT 50 OFFSET 0;
+            </pre>
+            <!-- Live timer -->
+            <span id="fast_query-timer" style="display: none; margin-left: 12px; font-size: 20px; font-family: monospace;">0.000s</span>
+            <!-- Results (shown after query completes) -->
+            <div id="fast_query-result" style="display: none; margin-top: 10px;">
+                <div id="fast_query-time" style="font-size: 14px;"></div>
+                <div id="fast_query-rows" style="font-size: 14px;"></div>
+                <div id="result-table-wrap"></div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // Simulate water loss first, then load the table
+        // Load flower data into the table
         function loadFlowers() {
-            // Fetch flower data from the server
             fetch('/flowers')
                 .then(response => response.json())
                 .then(data => {
-                    // Generate table rows based on the fetched data
                     let rows = "";
                     data.forEach(flower => {
-                        const cellStyle = flower.needs_watering ? 'style="background-color: #ffcccc;"' : 'style="background-color: #d3d3d3;"'; // Cell turn red if watering is needed
+                        const cellStyle = flower.needs_watering ? 'style="background-color: #ffcccc;"' : 'style="background-color: #d3d3d3;"';
                         rows += `<tr>
                             <td>${flower.name}</td>
                             <td>${flower.last_watered}</td>
@@ -85,23 +126,17 @@
                             </td>
                         </tr>`;
                     });
-                    // Insert the generated rows into the table body
                     document.getElementById("flower-data").innerHTML = rows;
                 });
         }
 
-        // Auto-simulate on page load, then display updated data
+        // Simulate water loss once per day, then load flowers
         function simulateIfNeeded() {
-            // Check if already simulated today
-            const today = new Date().toISOString().split("T")[0]; // get current date in YYYY-MM-DD format
-            const lastSimulated = localStorage.getItem("lastSimulated"); // get last simulated date from localStorage
-
-            // If already simulated, just load flowers
+            const today = new Date().toISOString().split("T")[0];
+            const lastSimulated = localStorage.getItem("lastSimulated");
             if (lastSimulated === today) {
                 loadFlowers();
-            } 
-            // Else, simulate water loss and then load flowers
-            else {
+            } else {
                 fetch('/flowers/simulate', { method: 'POST' })
                     .then(() => {
                         localStorage.setItem("lastSimulated", today);
@@ -113,62 +148,98 @@
         // Prompt user to add water to a flower by ID
         function waterFlower(id) {
             const newLevel = prompt("Add water (in):");
-            const today = new Date().toISOString().split("T")[0]; // get current date in YYYY-MM-DD format
-            if (newLevel === null) return; // user cancelled
-
-            // Send PUT request to update water level and last watered date
+            const today = new Date().toISOString().split("T")[0];
+            if (newLevel === null) return;
             fetch(`/flowers/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    water_level: parseInt(newLevel) 
-                })
-            }).then(() => {
-                loadFlowers();
-            });
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ water_level: parseInt(newLevel), last_watered: today })
+            }).then(() => loadFlowers());
         }
 
         // Add a new flower using form data
-        function addFlower() {
-            event.preventDefault(); // prevent page full refresh on form submit
-            
-            // Get form values
-            const name = document.getElementById("name").value;
-            const lastWatered = document.getElementById("last_watered").value;
-            const waterLevel = parseFloat(document.getElementById("water_level").value);
-            const minWaterRequired = parseFloat(document.getElementById("min_water_required").value);
-
-            // Send POST request to add new flower
+        function addFlower(event) {
+            event.preventDefault();
             fetch('/flowers', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    name: name,
-                    last_watered: lastWatered,
-                    water_level: waterLevel,
-                    min_water_required: minWaterRequired
+                    name:               document.getElementById("name").value,
+                    last_watered:       document.getElementById("last_watered").value,
+                    water_level:        parseFloat(document.getElementById("water_level").value),
+                    min_water_required: parseFloat(document.getElementById("min_water_required").value)
                 })
-            }).then(() => {
-                loadFlowers();
-            });
+            }).then(() => loadFlowers());
         }
 
-        // Delete flower by ID
+        // Delete a flower by ID
         function deleteFlower(id) {
-            // Send DELETE request to remove flower
-            fetch(`/flowers/${id}`, {
-                method: 'DELETE'
-            }).then(() => {
-                loadFlowers();
-            });
+            fetch(`/flowers/${id}`, { method: 'DELETE' }).then(() => loadFlowers());
         }
 
-        // Simulate water loss if needed, then load the flower data
         simulateIfNeeded();
+
+        // Run a performance query with a live ticking timer
+        const timerIntervals = {};
+        function runQuery(type) {
+            const btn      = document.getElementById(`${type}-btn`);
+            const timerEl  = document.getElementById(`${type}-timer`);
+            const resultEl = document.getElementById(`${type}-result`);
+            const timeEl   = document.getElementById(`${type}-time`);
+            const rowsEl   = document.getElementById(`${type}-rows`);
+
+            // Reset UI
+            btn.disabled = true;
+            resultEl.style.display = 'none';
+            timerEl.style.display = 'inline';
+            timerEl.textContent = '0.000s';
+
+            // Start live ticking clock
+            const t0 = performance.now();
+            timerIntervals[type] = setInterval(() => {
+                timerEl.textContent = ((performance.now() - t0) / 1000).toFixed(3) + 's';
+            }, 50);
+
+            fetch(`/performance/${type}`)
+                .then(r => r.json())
+                .then(data => {
+                    // Stop timer, freeze at final time
+                    clearInterval(timerIntervals[type]);
+                    const e2e = ((performance.now() - t0) / 1000).toFixed(3);
+                    timerEl.textContent = e2e + 's';
+
+                    // Show results
+                    timeEl.textContent = `DB: ${parseFloat(data.query_time_seconds).toFixed(3)}s  |  End-to-end: ${e2e}s`;
+                    rowsEl.textContent = `Rows returned: ${data.rows_returned}`;
+                    resultEl.style.display = 'block';
+
+                    // Sample table for fast query
+                    if (type === 'fast_query' && data.results && data.results.length > 0) {
+                        const wrap = document.getElementById('result-table-wrap');
+                        let html = `<p style="font-size:13px; margin: 8px 0 4px;">Sample results (first ${data.results.length} rows):</p>
+                                    <table><tr>
+                                        <th>Order ID</th><th>Customer</th>
+                                        <th>Email</th><th>Flower</th><th>Date</th>
+                                    </tr>`;
+                        data.results.forEach(r => {
+                            html += `<tr>
+                                <td>${r.order_id}</td><td>${r.customer}</td>
+                                <td>${r.email}</td><td>${r.flower}</td>
+                                <td>${r.date}</td>
+                            </tr>`;
+                        });
+                        html += '</table>';
+                        wrap.innerHTML = html;
+                    }
+
+                    btn.disabled = false;
+                })
+                .catch(err => {
+                    clearInterval(timerIntervals[type]);
+                    btn.disabled = false;
+                    alert(`Query failed: ${err}`);
+                });
+        }
     </script>
 
 </body>
