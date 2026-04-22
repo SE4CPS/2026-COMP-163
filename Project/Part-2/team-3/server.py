@@ -7,6 +7,8 @@ def create_app():
 
     admin.init_db()
     admin.seed_data()
+    admin.create_indexes()
+
 
     app.register_blueprint(frontend_bp)
     return app
