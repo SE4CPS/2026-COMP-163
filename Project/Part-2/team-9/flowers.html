@@ -4,6 +4,14 @@
 <head>
     <title>Flower Watering Status</title>
     <meta name="color-scheme" content="light dark">
+    <style>
+        .card {
+            padding: 12px;
+            border-style: solid;
+            margin: 12px;
+        }
+
+    </style>
 </head>
 
 <body>
@@ -31,7 +39,7 @@ CROSS JOIN team9_customers c
 CROSS JOIN team9_flowers f
 ORDER BY o.order_date DESC;</pre>
     </div>
-    <br>
+
     <div class="card">
         <button onclick="optimized_query()">fast query</button>
         <pre>SELECT c.id, c.name, c.email, o.id, o.order_date, f.id, f.name
@@ -42,7 +50,7 @@ ORDER BY o.order_date DESC;</pre>
     </div>
 
     <div class="card">
-        <h3>Result</h3>
+        <span>Result</span>
         <pre id="queryresult"></pre>
 
         <br>
