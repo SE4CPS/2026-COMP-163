@@ -1,9 +1,9 @@
 import psycopg2
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_b64dzjqCkBiF@"
+    "ep-soft-king-anuhub9k-pooler.c-6.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def _get_conn():
@@ -107,3 +107,57 @@ def water_flower(id, amount):
     finally:
         cur.close()
         conn.close()
+
+def slow():
+    conn = _get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            EXPLAIN ANALYZE
+            SELECT * FROM team10_flowers f
+                FULL JOIN team10_orders ON 1=1
+                FULL JOIN team10_customers ON 1=1
+            WHERE f.name LIKE '%%'
+            ORDER BY RANDOM()
+            ;
+        """)
+        rows = cur.fetchall()
+        for r in rows:
+            print(r)
+        return rows
+    finally:
+        cur.close()
+        conn.close()
+
+def fast():
+    print("fast ran")
+
+    conn = _get_conn()
+    cur = conn.cursor()
+    try:
+        print("Making Indexes")
+        cur.execute("""
+            CREATE INDEX idx_orders_customer_id ON team10_orders(customer_id);
+        """)
+        cur.execute("""
+            CREATE INDEX idx_orders_flower_id ON team10_orders(flower_id);
+        """)
+        cur.execute("""
+            CREATE INDEX idx_flowers_name ON team10_flowers(name);
+        """)
+        print("Finished making Indexes")
+        cur.execute("""
+            EXPLAIN ANALYZE
+            SELECT * FROM team10_flowers f
+                FULL JOIN team10_orders ON 1=1
+                FULL JOIN team10_customers ON 1=1
+            ;
+        """)
+        rows = cur.fetchall()
+        for r in rows:
+            print(r)
+        return rows
+    finally:
+        cur.close()
+        conn.close()
+    return

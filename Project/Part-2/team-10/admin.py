@@ -1,9 +1,9 @@
 import psycopg2
 
 DATABASE_URL = (
-    "postgresql://neondb_owner:npg_M5sVheSzQLv4@"
-    "ep-shrill-tree-a819xf7v-pooler.eastus2.azure.neon.tech/"
-    "neondb?sslmode=require"
+    "postgresql://neondb_owner:npg_b64dzjqCkBiF@"
+    "ep-soft-king-anuhub9k-pooler.c-6.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 def _get_conn():
@@ -40,6 +40,53 @@ def init_db():
             GREATEST(0, water_level - 5 * (CURRENT_DATE - last_watered)) AS current_water_level
             FROM team10_flowers;
             """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team10_customers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100),
+            email VARCHAR(100)
+        );
+        """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team10_orders (
+            id SERIAL PRIMARY KEY,
+            customer_id INT REFERENCES team10_customers(id),
+            flower_id INT REFERENCES team10_flowers(id),
+            order_date DATE
+        );
+        """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def generate_customers():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO team10_customers (name, email)
+        SELECT
+            'Customer_' || g,
+            'customer_' || g || '@example.com'
+        FROM generate_series(1, 500) AS g;
+        """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def generate_orders():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO team10_orders (customer_id, flower_id, order_date)
+        SELECT
+            (random() * 499 + 1)::INT,
+            (random() * 2 + 1)::INT,  -- adjust based on team10_flowers
+            CURRENT_DATE - ((random() * 365)::INT)
+        FROM generate_series(1, 10000);
+        """)
     conn.commit()
     cur.close()
     conn.close()
