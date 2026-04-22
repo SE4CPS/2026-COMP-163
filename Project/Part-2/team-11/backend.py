@@ -148,31 +148,34 @@ def water_flower(id):
         conn.close()
 
 SLOW_SQL = """
-SELECT
-    o.id,
-    o.customer_id,
-    o.flower_id,
-    o.order_date,
-    c.id,
-    c.name,
-    c.email,
-    f.id,
-    f.name,
-    f.last_watered,
-    f.water_level,
-    f.min_water_required,
-    md5(LOWER(c.email) || LOWER(c.name)) AS encrypted_email,
-    md5(LOWER(c.name) || LOWER(f.name) || CAST(o.order_date AS TEXT)) AS row_hash
+SELECT *
 FROM team11_orders o
 JOIN team11_customers c ON o.customer_id = c.id
 JOIN team11_flowers f ON o.flower_id = f.id
+CROSS JOIN (
+    SELECT id FROM team11_customers
+    WHERE LOWER(name) LIKE '%customer%'
+    LIMIT 2
+) AS c2
 WHERE LOWER(c.name) LIKE '%customer%'
-ORDER BY md5(LOWER(c.name) || LOWER(f.name) || LOWER(c.email)),
-         md5(LOWER(c.email) || CAST(o.order_date AS TEXT)),
-         UPPER(f.name),
-         o.order_date DESC;
+ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;
 """
  
+FAST_SQL = """
+SELECT
+    o.id,
+    o.order_date,
+    c.name AS customer_name,
+    c.email,
+    f.name AS flower_name
+FROM team11_orders o
+JOIN team11_customers c ON o.customer_id = c.id
+JOIN team11_flowers f ON o.flower_id = f.id
+WHERE c.name LIKE 'Customer%'
+ORDER BY o.id
+LIMIT 100 OFFSET 0;
+"""
+
 def slow_query():
     conn = _get_conn()
     cur = conn.cursor()
@@ -185,6 +188,22 @@ def slow_query():
     except Exception as e:
         elapsed = time.time() - start
         return {"sql": SLOW_SQL.strip(), "elapsed": round(elapsed, 4), "error": str(e)}
+    finally:
+        cur.close()
+        conn.close()
+
+def fast_query():
+    conn = _get_conn()
+    cur = conn.cursor()
+    start = time.time()
+    try:
+        cur.execute(FAST_SQL)
+        cur.fetchall()
+        elapsed = time.time() - start
+        return {"sql": FAST_SQL.strip(), "elapsed": round(elapsed, 4)}
+    except Exception as e:
+        elapsed = time.time() - start
+        return {"sql": FAST_SQL.strip(), "elapsed": round(elapsed, 4), "error": str(e)}
     finally:
         cur.close()
         conn.close()

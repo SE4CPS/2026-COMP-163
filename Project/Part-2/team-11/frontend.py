@@ -98,35 +98,34 @@ PAGE = """
   <div class="card">
     <button id="slow-btn" onclick="runQuery('slow')">Slow Query</button>
     &nbsp; <span id="slow-status"></span>
-    <pre>SELECT
-    o.id,
-    o.customer_id,
-    o.flower_id,
-    o.order_date,
-    c.id,
-    c.name,
-    c.email,
-    f.id,
-    f.name,
-    f.last_watered,
-    f.water_level,
-    f.min_water_required,
-    md5(LOWER(c.email) || LOWER(c.name)) AS encrypted_email,
-    md5(LOWER(c.name) || LOWER(f.name) || CAST(o.order_date AS TEXT)) AS row_hash
+    <pre>SELECT *
 FROM team11_orders o
 JOIN team11_customers c ON o.customer_id = c.id
 JOIN team11_flowers f ON o.flower_id = f.id
+CROSS JOIN (
+    SELECT id FROM team11_customers
+    WHERE LOWER(name) LIKE '%customer%'
+    LIMIT 2
+) AS c2
 WHERE LOWER(c.name) LIKE '%customer%'
-ORDER BY md5(LOWER(c.name) || LOWER(f.name) || LOWER(c.email)),
-         md5(LOWER(c.email) || CAST(o.order_date AS TEXT)),
-         UPPER(f.name),
-         o.order_date DESC;</pre>
+ORDER BY LOWER(c.name), UPPER(f.name), o.order_date DESC;</pre>
   </div>
  
   <div class="card">
     <button id="fast-btn" onclick="runQuery('fast')">Fast Query</button>
     &nbsp; <span id="fast-status"></span>
-    <pre>NEED FAST QUERY</pre>
+    <pre>SELECT
+    o.id,
+    o.order_date,
+    c.name AS customer_name,
+    c.email,
+    f.name AS flower_name
+FROM team11_orders o
+JOIN team11_customers c ON o.customer_id = c.id
+JOIN team11_flowers f ON o.flower_id = f.id
+WHERE c.name LIKE 'Customer%'
+ORDER BY o.id
+LIMIT 100 OFFSET 0;</pre>
   </div>
  
   <script>

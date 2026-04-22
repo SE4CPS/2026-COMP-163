@@ -42,6 +42,12 @@ def init_db():
         );
     """)
 
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON team11_orders(customer_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_flower_id ON team11_orders(flower_id);
+        CREATE INDEX IF NOT EXISTS idx_flowers_name ON team11_flowers(name);
+    """)
+
     conn.commit()
     cur.close()
     conn.close()
