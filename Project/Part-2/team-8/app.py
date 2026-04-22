@@ -151,32 +151,51 @@ def fast_slow_query(flag):
         start_time = time.time()
         query_used = '''
 
-        EXPLAIN ANALYZE SELECT *, 
-        pgp_sym_encrypt(c.email, 'key') AS e1, 
-        pgp_sym_encrypt(c.email, 'key') AS e2, 
-        pgp_sym_encrypt(c.email, 'key') AS e3, 
-        pgp_sym_encrypt(c.email, 'key') AS e4,
-        pgp_sym_encrypt(c.email, 'key') AS e5,
-        pgp_sym_encrypt(c.email, 'key') AS e6,
-        (
-            SELECT AVG(o2.id)
-            FROM team8_orders o2
-            WHERE o2.customer_id = o.customer_id
-        ) AS avg_order,
-        (
-            SELECT COUNT(*)
-            FROM team8_orders o3
-            WHERE o3.customer_id = o.customer_id
-        ) AS order_count
-        FROM team8_orders o
-        JOIN team8_customers c ON o.customer_id = c.id
-        JOIN team8_flowers f ON o.flower_id = f.flower_id
-        WHERE LOWER(c.email) LIKE '%gmail.com%'
+        EXPLAIN ANALYZE SELECT 
+        order_id,
+        customer_name,
+        flower_name
+        FROM (
+            SELECT 
+                o.id AS order_id,
+                c.name AS customer_name,
+                f.name AS flower_name,
+
+                pgp_sym_encrypt(c.email, 'key') AS e1,
+                pgp_sym_encrypt(c.email, 'key') AS e2,
+                pgp_sym_encrypt(c.email, 'key') AS e3,
+                pgp_sym_encrypt(c.email, 'key') AS e4,
+                pgp_sym_encrypt(c.email, 'key') AS e5,
+                pgp_sym_encrypt(c.email, 'key') AS e6,
+
+                pgp_sym_encrypt(f.name, 'key') AS enc_flower,
+                pgp_sym_encrypt(c.name, 'key') AS enc_name,
+
+                (
+                    SELECT AVG(o2.id)
+                    FROM team8_orders o2
+                    WHERE o2.customer_id = o.customer_id
+                ) AS avg_order,
+
+                (
+                    SELECT COUNT(*)
+                    FROM team8_orders o3
+                    WHERE o3.customer_id = o.customer_id
+                ) AS order_count,
+
+                LOWER(c.email) AS email_lower,
+                UPPER(c.name) AS name_upper
+
+            FROM team8_orders o
+            JOIN team8_customers c ON o.customer_id = c.id
+            JOIN team8_flowers f ON o.flower_id = f.flower_id
+        ) t
+        WHERE email_lower LIKE '%gmail.com%'
         ORDER BY 
-            UPPER(c.name),
-            pgp_sym_encrypt(c.email, 'key')::text,
-            pgp_sym_encrypt(f.name, 'key')::text,
-            pgp_sym_encrypt(c.name, 'key')::text;
+            name_upper,
+            e1::text,
+            enc_flower::text,
+            enc_name::text;
         '''
         cur.execute(query_used)
         raw_output = cur.fetchall()
