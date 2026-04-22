@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Team 2 Part 2 — Query benchmark</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 60rem; line-height: 1.45; }
+    section { margin-bottom: 2.25rem; }
+    h1 { font-size: 1.35rem; }
+    h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    pre {
+      background: #f4f4f6;
+      padding: 0.75rem 1rem;
+      overflow: auto;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    button {
+      padding: 0.45rem 1rem;
+      margin-top: 0.5rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    button:disabled { cursor: wait; opacity: 0.7; }
+    .time { margin-top: 0.65rem; font-weight: 600; }
+    .warn { color: #8a4b00; max-width: 42rem; }
+    a { color: #0645ad; }
+  </style>
+</head>
+<body>
+  <h1>Team 2 — Part 2: slow vs fast query</h1>
+  <p class="warn">The slow query can take many minutes. Query <strong>results</strong> are not shown—only execution times below.</p>
+
+  <section>
+    <h2>Slow query</h2>
+    <pre>{{ slow_sql | e }}</pre>
+    <button type="button" id="btn-slow">Slow Query</button>
+    <p class="time" id="slow-time"></p>
+  </section>
+
+  <section>
+    <h2>Fast query</h2>
+    <pre>{{ fast_sql | e }}</pre>
+    <button type="button" id="btn-fast">Fast Query</button>
+    <p class="time" id="fast-time"></p>
+  </section>
+
+  <p><a href="/">Back to home</a></p>
+
+  <script>
+    async function runSlow() {
+      const btn = document.getElementById('btn-slow');
+      const el = document.getElementById('slow-time');
+      btn.disabled = true;
+      el.textContent = 'Running…';
+      try {
+        const r = await fetch('{{ url_for("api_slow_query") }}', { method: 'POST' });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.message || r.statusText);
+        el.textContent =
+          'Wall clock: ' + j.wall_clock_seconds + ' s | DB execute + fetch: ' +
+          j.db_execute_fetch_seconds + ' s | row count: ' + j.row_count;
+      } catch (e) {
+        el.textContent = 'Error: ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    async function runFast() {
+      const btn = document.getElementById('btn-fast');
+      const el = document.getElementById('fast-time');
+      btn.disabled = true;
+      el.textContent = 'Running…';
+      try {
+        const r = await fetch('{{ url_for("api_fast_query") }}', { method: 'POST' });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.message || r.statusText);
+        el.textContent =
+          'Wall clock: ' + j.wall_clock_seconds + ' s | DB execute + fetch: ' +
+          j.db_execute_fetch_seconds + ' s | row count: ' + j.row_count;
+      } catch (e) {
+        el.textContent = 'Error: ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    document.getElementById('btn-slow').addEventListener('click', runSlow);
+    document.getElementById('btn-fast').addEventListener('click', runFast);
+  </script>
+</body>
+</html>
