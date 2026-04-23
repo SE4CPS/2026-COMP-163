@@ -3,10 +3,11 @@ import backend
 
 frontend_bp = Blueprint("frontend", __name__)
 
-last_flowers = None
-last_customers = None
-last_orders = None
-last_query_result = None
+last_flowers      = None
+last_customers    = None
+last_orders       = None
+last_query_result = None  # dict: {query_type, elapsed, sql}
+active_tab        = "flowers"
 
 PAGE = """
 <!doctype html>
@@ -23,8 +24,8 @@ PAGE = """
       --pink-bright: #f472b6;
       --pink-mid: #ec4899;
       --pink-dark: #be185d;
-      --rose: #9f1239;
-      --amber: #f59e0b;
+      --green: #4ade80;
+      --red: #f87171;
       --text: #fce7f3;
       --muted: #9a7a9a;
       --card: #211221;
@@ -34,76 +35,35 @@ PAGE = """
     body { font-family: 'DM Mono', monospace; background-color: var(--bg); color: var(--text); min-height: 100vh; }
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background:
         radial-gradient(ellipse 60% 40% at 20% 10%, rgba(236,72,153,0.07) 0%, transparent 60%),
         radial-gradient(ellipse 40% 50% at 80% 80%, rgba(244,114,182,0.05) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
     header {
-      position: relative;
-      z-index: 1;
+      position: relative; z-index: 1;
       padding: 40px 60px 28px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 24px;
+      display: flex; align-items: flex-end; gap: 24px;
     }
-    header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
-      color: var(--pink-bright);
-      letter-spacing: -0.02em;
-    }
+    header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,4vw,3rem); font-weight: 700; color: var(--pink-bright); }
     header p { margin-top: 6px; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
     main { position: relative; z-index: 1; padding: 36px 60px; max-width: 1400px; }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px 28px;
-      margin-bottom: 28px;
-    }
-    .card h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.2rem;
-      color: var(--text);
-      margin-bottom: 18px;
-    }
-    .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
-    label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-    input[type="text"], input[type="date"], input[type="number"], select {
-      display: block;
-      margin-top: 6px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.85rem;
-      padding: 8px 12px;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    input:focus, select:focus { border-color: var(--pink-dark); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 28px; }
+    .card h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text); margin-bottom: 18px; }
     button {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.06em;
-      padding: 9px 18px;
-      border-radius: 8px;
-      border: 1px solid;
-      cursor: pointer;
-      transition: all 0.18s ease;
+      font-family: 'DM Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em;
+      padding: 9px 18px; border-radius: 8px; border: 1px solid; cursor: pointer; transition: all 0.18s ease;
     }
     .btn-primary { background: var(--pink-mid); border-color: var(--pink-mid); color: #1a0d1a; font-weight: 600; }
     .btn-primary:hover { background: var(--pink-bright); border-color: var(--pink-bright); }
     .btn-outline { background: transparent; border-color: var(--border); color: var(--muted); }
     .btn-outline:hover { border-color: var(--pink-dark); color: var(--text); }
+    .btn-slow { background: rgba(248,113,113,0.15); border-color: #7f1d1d; color: var(--red); font-weight: 600; }
+    .btn-slow:hover { background: rgba(248,113,113,0.3); }
+    .btn-fast { background: rgba(74,222,128,0.15); border-color: #14532d; color: var(--green); font-weight: 600; }
+    .btn-fast:hover { background: rgba(74,222,128,0.3); }
     .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
     thead tr { background: var(--panel); border-bottom: 1px solid var(--border); }
@@ -112,35 +72,37 @@ PAGE = """
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: rgba(236,72,153,0.04); }
     td { padding: 14px 18px; font-size: 0.83rem; vertical-align: middle; }
-    td.name-cell { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--text); }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      letter-spacing: 0.06em;
-      font-weight: 500;
-    }
-    .badge-pink { background: rgba(236,72,153,0.12); color: var(--pink-mid); border: 1px solid rgba(236,72,153,0.2); }
+    td.name-cell { font-family: 'Playfair Display', serif; font-size: 1rem; }
     .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
     .nav-tab {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: all 0.18s ease;
+      padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); font-size: 0.78rem;
+      cursor: pointer; transition: all 0.18s ease; font-family: 'DM Mono', monospace;
     }
     .nav-tab.active { background: var(--pink-dark); border-color: var(--pink-dark); color: var(--text); }
     .nav-tab:hover:not(.active) { border-color: var(--pink-dark); color: var(--text); }
-    a { color: var(--pink-mid); text-decoration: none; font-size: 0.72rem; }
-    a:hover { color: var(--pink-bright); }
+    .query-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .query-grid { grid-template-columns: 1fr; } }
+    .query-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .query-box h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .slow-label { color: var(--red); }
+    .fast-label { color: var(--green); }
+    .sql-block {
+      background: #0d060d; border: 1px solid #2a1020; border-radius: 8px;
+      padding: 14px 16px; font-size: 0.72rem; line-height: 1.7;
+      white-space: pre-wrap; color: #d8b4fe; overflow-x: auto; flex: 1;
+    }
+    .timing-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+    }
+    .timing-slow { background: rgba(248,113,113,0.15); color: var(--red);   border: 1px solid #7f1d1d; }
+    .timing-fast { background: rgba(74,222,128,0.15);  color: var(--green); border: 1px solid #14532d; }
     @media (max-width: 768px) { header, main { padding: 24px 20px; } }
-    pre { background: var(--bg); padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.75rem; white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -148,19 +110,20 @@ PAGE = """
 <header>
   <div>
     <h1>Flower Shop</h1>
-    <p>Flowers, Customers &amp; Orders</p>
+    <p>Flowers, Customers &amp; Orders — Part 2</p>
   </div>
 </header>
 
 <main>
   <nav class="nav-tabs">
-    <button class="nav-tab active" onclick="showTab('flowers')">Flowers</button>
-    <button class="nav-tab" onclick="showTab('customers')">Customers</button>
-    <button class="nav-tab" onclick="showTab('orders')">Orders</button>
-    <button class="nav-tab" onclick="showTab('queries')">Queries</button>
+    <button class="nav-tab {% if active_tab=='flowers' %}active{% endif %}"   onclick="showTab('flowers')">Flowers</button>
+    <button class="nav-tab {% if active_tab=='customers' %}active{% endif %}" onclick="showTab('customers')">Customers</button>
+    <button class="nav-tab {% if active_tab=='orders' %}active{% endif %}"    onclick="showTab('orders')">Orders</button>
+    <button class="nav-tab {% if active_tab=='queries' %}active{% endif %}"   onclick="showTab('queries')">Queries</button>
   </nav>
 
-  <div id="tab-flowers" class="tab-content">
+  <!-- Flowers -->
+  <div id="tab-flowers" class="tab-content" {% if active_tab!='flowers' %}style="display:none;"{% endif %}>
     <div class="card">
       <h3>Our Flowers</h3>
       <form method="POST" action="{{ url_for('frontend.load_flowers') }}">
@@ -170,26 +133,19 @@ PAGE = """
     {% if flowers %}
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-          </tr>
-        </thead>
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
         <tbody>
           {% for r in flowers %}
-          <tr>
-            <td>{{ r.id }}</td>
-            <td class="name-cell">{{ r.name }}</td>
-          </tr>
-{% endfor %}
+          <tr><td>{{ r.id }}</td><td class="name-cell">{{ r.name }}</td></tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
     {% endif %}
   </div>
 
-  <div id="tab-customers" class="tab-content" style="display:none;">
+  <!-- Customers -->
+  <div id="tab-customers" class="tab-content" {% if active_tab!='customers' %}style="display:none;"{% endif %}>
     <div class="card">
       <h3>Our Customers</h3>
       <form method="POST" action="{{ url_for('frontend.load_customers') }}">
@@ -199,20 +155,10 @@ PAGE = """
     {% if customers %}
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-          </tr>
-        </thead>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th></tr></thead>
         <tbody>
           {% for r in customers %}
-          <tr>
-            <td>{{ r.id }}</td>
-            <td class="name-cell">{{ r.name }}</td>
-            <td>{{ r.email }}</td>
-          </tr>
+          <tr><td>{{ r.id }}</td><td class="name-cell">{{ r.name }}</td><td>{{ r.email }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -220,7 +166,8 @@ PAGE = """
     {% endif %}
   </div>
 
-  <div id="tab-orders" class="tab-content" style="display:none;">
+  <!-- Orders -->
+  <div id="tab-orders" class="tab-content" {% if active_tab!='orders' %}style="display:none;"{% endif %}>
     <div class="card">
       <h3>Orders</h3>
       <form method="POST" action="{{ url_for('frontend.load_orders') }}">
@@ -230,14 +177,7 @@ PAGE = """
     {% if orders %}
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Customer</th>
-            <th>Flower</th>
-            <th>Order Date</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Order ID</th><th>Customer</th><th>Flower</th><th>Order Date</th></tr></thead>
         <tbody>
           {% for r in orders %}
           <tr>
@@ -253,24 +193,41 @@ PAGE = """
     {% endif %}
   </div>
 
-  <div id="tab-queries" class="tab-content" style="display:none;">
-    <div class="card">
-      <h3>Database Queries</h3>
-      <div class="row">
-        <form method="POST" action="{{ url_for('frontend.slow_query') }}">
-          <button type="submit" class="btn-outline">Time Slow Query</button>
-        </form>
-        <form method="POST" action="{{ url_for('frontend.fast_query') }}">
-          <button type="submit" class="btn-primary">Time Fast Query</button>
-        </form>
+  <!-- Queries -->
+  <div id="tab-queries" class="tab-content" {% if active_tab!='queries' %}style="display:none;"{% endif %}>
+    <div class="query-grid">
+
+      <!-- Slow -->
+      <div class="query-box">
+        <h4 class="slow-label">Slow Query</h4>
+        <div class="sql-block">{{ slow_sql }}</div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <form method="POST" action="{{ url_for('frontend.slow_query') }}">
+            <button type="submit" class="btn-slow">Run Slow Query</button>
+          </form>
+          {% if query_result and query_result.query_type == 'slow' %}
+            <span class="timing-badge timing-slow">{{ "%.3f"|format(query_result.elapsed) }}s</span>
+          {% endif %}
+        </div>
       </div>
+
+      <!-- Fast -->
+      <div class="query-box">
+        <h4 class="fast-label">Fast Query</h4>
+        <div class="sql-block">{{ fast_sql }}</div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <form method="POST" action="{{ url_for('frontend.fast_query') }}">
+            <button type="submit" class="btn-fast">Run Fast Query</button>
+          </form>
+          {% if query_result and query_result.query_type == 'fast' %}
+            <span class="timing-badge timing-fast">{{ "%.3f"|format(query_result.elapsed) }}s</span>
+          {% endif %}
+        </div>
+      </div>
+
     </div>
-    {% if query_result %}
-    <div class="card">
-      <h3>Query Time: {{ query_result }}</h3>
-    </div>
-    {% endif %}
   </div>
+
 </main>
 
 <script>
@@ -281,47 +238,59 @@ PAGE = """
     event.target.classList.add('active');
   }
 </script>
-
 </body>
 </html>
 """
 
 @frontend_bp.route("/")
 def index():
-    global last_flowers, last_customers, last_orders, last_query_result
-    flowers = last_flowers
-    customers = last_customers
-    orders = last_orders
+    global last_flowers, last_customers, last_orders, last_query_result, active_tab
     result = last_query_result
     last_query_result = None
-    return render_template_string(PAGE, flowers=flowers, customers=customers, orders=orders, query_result=result)
+    return render_template_string(
+        PAGE,
+        flowers=last_flowers,
+        customers=last_customers,
+        orders=last_orders,
+        query_result=result,
+        active_tab=active_tab,
+        slow_sql=backend.SLOW_SQL,
+        fast_sql=backend.FAST_SQL,
+    )
 
 @frontend_bp.route("/load/flowers", methods=["POST"])
 def load_flowers():
-    global last_flowers
+    global last_flowers, active_tab
     last_flowers = backend.select_flower()
+    active_tab = "flowers"
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/load/customers", methods=["POST"])
 def load_customers():
-    global last_customers
+    global last_customers, active_tab
     last_customers = backend.select_customer()
+    active_tab = "customers"
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/load/orders", methods=["POST"])
 def load_orders():
-    global last_orders
+    global last_orders, active_tab
     last_orders = backend.select_order_with_details()
+    active_tab = "orders"
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/slow", methods=["POST"])
 def slow_query():
-    global last_query_result
-    last_query_result = backend.slow()
+    global last_query_result, active_tab
+    elapsed, sql = backend.slow()
+    last_query_result = {"query_type": "slow", "elapsed": elapsed, "sql": sql}
+    active_tab = "queries"
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/fast", methods=["POST"])
 def fast_query():
-    global last_query_result
-    last_query_result = backend.fast()
+    global last_query_result, active_tab
+    elapsed, sql = backend.fast()
+    last_query_result = {"query_type": "fast", "elapsed": elapsed, "sql": sql}
+    active_tab = "queries"
     return redirect(url_for("frontend.index"))
