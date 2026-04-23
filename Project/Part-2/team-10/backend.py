@@ -115,9 +115,12 @@ def slow():
     try:
         cur.execute("""
             EXPLAIN ANALYZE
-            SELECT * FROM team10_customers c
-            CROSS JOIN team10_orders o
-            CROSS JOIN team10_flowers f;
+SELECT COUNT(*), COUNT(c.name), COUNT(f.name) FROM team10_orders o 
+FULL JOIN team10_customers c ON 1=1
+FULL JOIN team10_flowers  f ON 1=1
+GROUP BY c.name, f.name
+ORDER BY RANDOM();
+
         """)
         rows = cur.fetchall()
         result = [{"plan": str(r[0]) if r else ""} for r in rows]
@@ -143,16 +146,21 @@ def fast():
         cur.execute("""
             EXPLAIN ANALYZE
 SELECT
-    c.*,
-    o.*,
-    f.*,
-    LOWER(COALESCE(c.name, '')) AS c_name_lcase,
-    LOWER(COALESCE(f.name, '')) AS f_name_lcase
-FROM team10_customers c
-CROSS JOIN team10_orders o
-CROSS JOIN team10_flowers f
-WHERE c.name IS NOT NULL
-ORDER BY c_name_lcase, f_name_lcase;
+  c.id           AS customer_id,
+  c.name         AS customer_name,
+  f.id           AS flower_id,
+  f.name         AS flower_name,
+  COUNT(*)       AS purchases,
+  MIN(o.order_date) AS first_order,
+  MAX(o.order_date) AS last_order
+FROM team10_orders o
+JOIN team10_customers c ON o.customer_id = c.id
+JOIN team10_flowers  f ON o.flower_id   = f.id
+GROUP BY c.id, c.name, f.id, f.name
+ORDER BY purchases DESC;
+
+
+
         """)
         rows = cur.fetchall()
         result = [{"plan": str(r[0]) if r else ""} for r in rows]

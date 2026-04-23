@@ -3,6 +3,9 @@ import backend
 
 frontend_bp = Blueprint("frontend", __name__)
 
+last_flowers = None
+last_customers = None
+last_orders = None
 last_query_result = None
 
 PAGE = """
@@ -160,7 +163,11 @@ PAGE = """
   <div id="tab-flowers" class="tab-content">
     <div class="card">
       <h3>Our Flowers</h3>
+      <form method="POST" action="{{ url_for('frontend.load_flowers') }}">
+        <button type="submit" class="btn-primary">Load Flowers</button>
+      </form>
     </div>
+    {% if flowers %}
     <div class="table-wrap">
       <table>
         <thead>
@@ -175,16 +182,21 @@ PAGE = """
             <td>{{ r.id }}</td>
             <td class="name-cell">{{ r.name }}</td>
           </tr>
-          {% endfor %}
+{% endfor %}
         </tbody>
       </table>
     </div>
+    {% endif %}
   </div>
 
   <div id="tab-customers" class="tab-content" style="display:none;">
     <div class="card">
       <h3>Our Customers</h3>
+      <form method="POST" action="{{ url_for('frontend.load_customers') }}">
+        <button type="submit" class="btn-primary">Load Customers</button>
+      </form>
     </div>
+    {% if customers %}
     <div class="table-wrap">
       <table>
         <thead>
@@ -205,12 +217,17 @@ PAGE = """
         </tbody>
       </table>
     </div>
+    {% endif %}
   </div>
 
   <div id="tab-orders" class="tab-content" style="display:none;">
     <div class="card">
       <h3>Orders</h3>
+      <form method="POST" action="{{ url_for('frontend.load_orders') }}">
+        <button type="submit" class="btn-primary">Load Orders</button>
+      </form>
     </div>
+    {% if orders %}
     <div class="table-wrap">
       <table>
         <thead>
@@ -233,6 +250,7 @@ PAGE = """
         </tbody>
       </table>
     </div>
+    {% endif %}
   </div>
 
   <div id="tab-queries" class="tab-content" style="display:none;">
@@ -270,13 +288,31 @@ PAGE = """
 
 @frontend_bp.route("/")
 def index():
-    global last_query_result
-    flowers = backend.select_flower()
-    customers = backend.select_customer()
-    orders = backend.select_order_with_details()
+    global last_flowers, last_customers, last_orders, last_query_result
+    flowers = last_flowers
+    customers = last_customers
+    orders = last_orders
     result = last_query_result
     last_query_result = None
     return render_template_string(PAGE, flowers=flowers, customers=customers, orders=orders, query_result=result)
+
+@frontend_bp.route("/load/flowers", methods=["POST"])
+def load_flowers():
+    global last_flowers
+    last_flowers = backend.select_flower()
+    return redirect(url_for("frontend.index"))
+
+@frontend_bp.route("/load/customers", methods=["POST"])
+def load_customers():
+    global last_customers
+    last_customers = backend.select_customer()
+    return redirect(url_for("frontend.index"))
+
+@frontend_bp.route("/load/orders", methods=["POST"])
+def load_orders():
+    global last_orders
+    last_orders = backend.select_order_with_details()
+    return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/slow", methods=["POST"])
 def slow_query():
