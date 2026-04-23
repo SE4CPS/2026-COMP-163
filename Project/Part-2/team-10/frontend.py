@@ -3,26 +3,28 @@ import backend
 
 frontend_bp = Blueprint("frontend", __name__)
 
+last_query_result = None
+
 PAGE = """
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Plant Watering Tracker</title>
+  <title>Flower Shop</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #0d1a0f;
-      --panel: #111f14;
-      --border: #1e3322;
-      --green-bright: #4ade80;
-      --green-mid: #22c55e;
-      --green-dark: #15803d;
+      --bg: #1a0d1a;
+      --panel: #1f111f;
+      --border: #331e33;
+      --pink-bright: #f472b6;
+      --pink-mid: #ec4899;
+      --pink-dark: #be185d;
+      --rose: #9f1239;
       --amber: #f59e0b;
-      --red: #ef4444;
-      --text: #d1fae5;
-      --muted: #6b9a7a;
-      --card: #13201a;
+      --text: #fce7f3;
+      --muted: #9a7a9a;
+      --card: #211221;
       --radius: 12px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,8 +34,8 @@ PAGE = """
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(34,197,94,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 50% at 80% 80%, rgba(74,222,128,0.05) 0%, transparent 60%);
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(236,72,153,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 80% 80%, rgba(244,114,182,0.05) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
@@ -51,7 +53,7 @@ PAGE = """
       font-family: 'Playfair Display', serif;
       font-size: clamp(2rem, 4vw, 3rem);
       font-weight: 700;
-      color: var(--green-bright);
+      color: var(--pink-bright);
       letter-spacing: -0.02em;
     }
     header p { margin-top: 6px; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -71,7 +73,7 @@ PAGE = """
     }
     .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
     label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-    input[type="text"], input[type="date"], input[type="number"] {
+    input[type="text"], input[type="date"], input[type="number"], select {
       display: block;
       margin-top: 6px;
       background: var(--bg);
@@ -84,7 +86,7 @@ PAGE = """
       outline: none;
       transition: border-color 0.15s;
     }
-    input:focus { border-color: var(--green-dark); }
+    input:focus, select:focus { border-color: var(--pink-dark); }
     button {
       font-family: 'DM Mono', monospace;
       font-size: 0.78rem;
@@ -95,23 +97,17 @@ PAGE = """
       cursor: pointer;
       transition: all 0.18s ease;
     }
-    .btn-primary { background: var(--green-mid); border-color: var(--green-mid); color: #0d1a0f; font-weight: 600; }
-    .btn-primary:hover { background: var(--green-bright); border-color: var(--green-bright); }
+    .btn-primary { background: var(--pink-mid); border-color: var(--pink-mid); color: #1a0d1a; font-weight: 600; }
+    .btn-primary:hover { background: var(--pink-bright); border-color: var(--pink-bright); }
     .btn-outline { background: transparent; border-color: var(--border); color: var(--muted); }
-    .btn-outline:hover { border-color: var(--green-dark); color: var(--text); }
-    .btn-water { background: var(--green-dark); border-color: var(--green-dark); color: var(--green-bright); padding: 6px 12px; font-size: 0.72rem; }
-    .btn-water:hover { background: var(--green-mid); border-color: var(--green-mid); color: #0d1a0f; }
-    .btn-edit { background: transparent; border-color: #1c3a2a; color: var(--green-mid); padding: 6px 12px; font-size: 0.72rem; }
-    .btn-edit:hover { background: rgba(34,197,94,0.1); }
-    .btn-danger { background: transparent; border-color: #7f1d1d; color: var(--red); padding: 6px 12px; font-size: 0.72rem; }
-    .btn-danger:hover { background: rgba(239,68,68,0.1); }
+    .btn-outline:hover { border-color: var(--pink-dark); color: var(--text); }
     .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
     thead tr { background: var(--panel); border-bottom: 1px solid var(--border); }
     th { padding: 12px 18px; text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 400; }
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s ease; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(34,197,94,0.04); }
+    tbody tr:hover { background: rgba(236,72,153,0.04); }
     td { padding: 14px 18px; font-size: 0.83rem; vertical-align: middle; }
     td.name-cell { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--text); }
     .badge {
@@ -124,115 +120,149 @@ PAGE = """
       letter-spacing: 0.06em;
       font-weight: 500;
     }
-    .badge-ok { background: rgba(34,197,94,0.12); color: var(--green-mid); border: 1px solid rgba(34,197,94,0.2); }
-    .badge-need { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
-    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-    .dot-ok { background: var(--green-mid); }
-    .dot-need { background: var(--red); animation: pulse 1.4s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-    .actions-cell { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .water-inline { display: inline-flex; gap: 6px; align-items: center; }
-    .water-inline input { width: 60px; margin-top: 0; padding: 6px 8px; }
-    a { color: var(--green-mid); text-decoration: none; font-size: 0.72rem; }
-    a:hover { color: var(--green-bright); }
+    .badge-pink { background: rgba(236,72,153,0.12); color: var(--pink-mid); border: 1px solid rgba(236,72,153,0.2); }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .nav-tab.active { background: var(--pink-dark); border-color: var(--pink-dark); color: var(--text); }
+    .nav-tab:hover:not(.active) { border-color: var(--pink-dark); color: var(--text); }
+    a { color: var(--pink-mid); text-decoration: none; font-size: 0.72rem; }
+    a:hover { color: var(--pink-bright); }
     @media (max-width: 768px) { header, main { padding: 24px 20px; } }
+    pre { background: var(--bg); padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.75rem; white-space: pre-wrap; }
   </style>
 </head>
 <body>
 
 <header>
   <div>
-    <h1>🌿 Plant Watering Tracker</h1>
-    <p>Real-time watering status &amp; management</p>
+    <h1>Flower Shop</h1>
+    <p>Flowers, Customers &amp; Orders</p>
   </div>
 </header>
 
 <main>
-  <div class="card">
-    <h3>Add Flower</h3>
-    <form method="POST" action="{{ url_for('frontend.add') }}">
-      <div class="row">
-        <label>Name<input type="text" name="name" required></label>
-        <label>Last Watered<input type="date" name="last_watered" required></label>
-        <label>Water Level (inches)<input type="number" name="water_level" min="0" required></label>
-        <label>Min Water Required (inches)<input type="number" name="min_water_required" min="0" required></label>
-        <button type="submit" class="btn-primary">+ Add</button>
-      </div>
-    </form>
-  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('flowers')">Flowers</button>
+    <button class="nav-tab" onclick="showTab('customers')">Customers</button>
+    <button class="nav-tab" onclick="showTab('orders')">Orders</button>
+    <button class="nav-tab" onclick="showTab('queries')">Queries</button>
+  </nav>
 
-  <div class="card">
-    <h3>Queries</h3>
-    <div class="row">
-      <form method="POST" action="{{ url_for('frontend.slow_query') }}">
-        <button type="submit" class="btn-outline">Run Slow Query</button>
-      </form>
-      <form method="POST" action="{{ url_for('frontend.fast_query') }}">
-        <button type="submit" class="btn-primary">Run Fast Query</button>
-      </form>
+  <div id="tab-flowers" class="tab-content">
+    <div class="card">
+      <h3>Our Flowers</h3>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in flowers %}
+          <tr>
+            <td>{{ r.id }}</td>
+            <td class="name-cell">{{ r.name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
-  {% if edit_item %}
-  <div class="card">
-    <h3>Edit — {{ edit_item.name }}</h3>
-    <form method="POST" action="{{ url_for('frontend.edit', id=edit_item.id) }}">
-      <div class="row">
-        <label>Last Watered<input type="date" name="last_watered" value="{{ edit_item.last_watered }}" required></label>
-        <label>Water Level (inches)<input type="number" name="water_level" min="0" value="{{ edit_item.water_level }}" required></label>
-        <button type="submit" class="btn-primary">Save</button>
-        <a href="{{ url_for('frontend.index') }}" style="align-self:center;">Cancel</a>
-      </div>
-    </form>
+  <div id="tab-customers" class="tab-content" style="display:none;">
+    <div class="card">
+      <h3>Our Customers</h3>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in customers %}
+          <tr>
+            <td>{{ r.id }}</td>
+            <td class="name-cell">{{ r.name }}</td>
+            <td>{{ r.email }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-  {% endif %}
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Last Watered</th>
-          <th>Water Level</th>
-          <th>Min Required</th>
-          <th>Current Level</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rows %}
-        <tr>
-          <td>{{ r.id }}</td>
-          <td class="name-cell">{{ r.name }}</td>
-          <td>{{ r.last_watered }}</td>
-          <td>{{ r.water_level }} in</td>
-          <td>{{ r.min_water_required }} in</td>
-          <td>{{ r.current_water_level }} in</td>
-          <td>
-            {% if r.needs_watering %}
-              <span class="badge badge-need"><span class="dot dot-need"></span>Needs Water</span>
-            {% else %}
-              <span class="badge badge-ok"><span class="dot dot-ok"></span>OK</span>
-            {% endif %}
-          </td>
-          <td class="actions-cell">
-            <form method="POST" action="{{ url_for('frontend.water', id=r.id) }}" class="water-inline">
-              <input type="number" name="amount" min="1" placeholder="in" required>
-              <button type="submit" class="btn-water">💧 Water</button>
-            </form>
-            <a href="{{ url_for('frontend.index', edit=r.id) }}" class="btn-edit" style="padding:6px 12px; border:1px solid #1c3a2a; border-radius:8px;">Edit</a>
-            <form method="POST" action="{{ url_for('frontend.delete', id=r.id) }}" style="display:inline;">
-              <button type="submit" class="btn-danger" onclick="return confirm('Delete?');">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div id="tab-orders" class="tab-content" style="display:none;">
+    <div class="card">
+      <h3>Orders</h3>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Flower</th>
+            <th>Order Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in orders %}
+          <tr>
+            <td>{{ r.order_id }}</td>
+            <td>{{ r.customer_name }}</td>
+            <td>{{ r.flower_name }}</td>
+            <td>{{ r.order_date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-queries" class="tab-content" style="display:none;">
+    <div class="card">
+      <h3>Database Queries</h3>
+      <div class="row">
+        <form method="POST" action="{{ url_for('frontend.slow_query') }}">
+          <button type="submit" class="btn-outline">Time Slow Query</button>
+        </form>
+        <form method="POST" action="{{ url_for('frontend.fast_query') }}">
+          <button type="submit" class="btn-primary">Time Fast Query</button>
+        </form>
+      </div>
+    </div>
+    {% if query_result %}
+    <div class="card">
+      <h3>Query Time: {{ query_result }}</h3>
+    </div>
+    {% endif %}
   </div>
 </main>
+
+<script>
+  function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab).style.display = 'block';
+    event.target.classList.add('active');
+  }
+</script>
 
 </body>
 </html>
@@ -240,44 +270,22 @@ PAGE = """
 
 @frontend_bp.route("/")
 def index():
-    edit_id = request.args.get("edit", type=int)
-    edit_item = backend.select_flower(edit_id) if edit_id else None
-    rows = backend.select_flower()
-    return render_template_string(PAGE, rows=rows, edit_item=edit_item)
-
-@frontend_bp.route("/add", methods=["POST"])
-def add():
-    name = request.form.get("name", "").strip()
-    last_watered = request.form.get("last_watered", "").strip()
-    water_level = int(request.form.get("water_level", 0))
-    min_water_required = int(request.form.get("min_water_required", 0))
-    backend.insert_flower(name, last_watered, water_level, min_water_required)
-    return redirect(url_for("frontend.index"))
-
-@frontend_bp.route("/edit/<int:id>", methods=["POST"])
-def edit(id):
-    last_watered = request.form.get("last_watered", "").strip()
-    water_level = int(request.form.get("water_level", 0))
-    backend.update_flower(id, last_watered, water_level)
-    return redirect(url_for("frontend.index"))
-
-@frontend_bp.route("/water/<int:id>", methods=["POST"])
-def water(id):
-    amount = int(request.form.get("amount", 0))
-    backend.water_flower(id, amount)
-    return redirect(url_for("frontend.index"))
-
-@frontend_bp.route("/delete/<int:id>", methods=["POST"])
-def delete(id):
-    backend.delete_flower(id)
-    return redirect(url_for("frontend.index"))
+    global last_query_result
+    flowers = backend.select_flower()
+    customers = backend.select_customer()
+    orders = backend.select_order_with_details()
+    result = last_query_result
+    last_query_result = None
+    return render_template_string(PAGE, flowers=flowers, customers=customers, orders=orders, query_result=result)
 
 @frontend_bp.route("/slow", methods=["POST"])
 def slow_query():
-    backend.slow()
+    global last_query_result
+    last_query_result = backend.slow()
     return redirect(url_for("frontend.index"))
 
 @frontend_bp.route("/fast", methods=["POST"])
 def fast_query():
-    backend.fast()
+    global last_query_result
+    last_query_result = backend.fast()
     return redirect(url_for("frontend.index"))

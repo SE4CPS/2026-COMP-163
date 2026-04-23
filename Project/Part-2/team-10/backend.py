@@ -9,101 +9,102 @@ DATABASE_URL = (
 def _get_conn():
     return psycopg2.connect(DATABASE_URL)
 
-def insert_flower(name, last_watered, water_level, min_water_required):
-    conn = _get_conn()
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            INSERT INTO team10_flowers (name, last_watered, water_level, min_water_required)
-            VALUES (%s, %s, %s, %s);
-        """, (name, last_watered, water_level, min_water_required))
-        conn.commit()
-        return True
-    except Exception as e:
-        conn.rollback()
-        print("Insert error:", e)
-        return False
-    finally:
-        cur.close()
-        conn.close()
-
 def select_flower(id=None):
     conn = _get_conn()
     cur = conn.cursor()
     try:
         if id is None:
-            cur.execute("""
-                SELECT id, name, last_watered, water_level, min_water_required, current_water_level
-                FROM v_team10_flowers ORDER BY id;
-            """)
+            cur.execute("SELECT id, name FROM team10_flowers ORDER BY id;")
             rows = cur.fetchall()
-            return [{
-                "id": r[0],
-                "name": r[1],
-                "last_watered": r[2].strftime("%Y-%m-%d"), 
-                "water_level": r[3],
-                "min_water_required": r[4],
-                "current_water_level": r[5],
-                "needs_watering": r[5] < r[4]
-            } for r in rows]
+            return [{"id": r[0], "name": r[1]} for r in rows]
         else:
-            cur.execute("SELECT id, name, last_watered, water_level, min_water_required, current_water_level FROM v_team10_flowers WHERE id = %s;", (id,))
+            cur.execute("SELECT id, name FROM team10_flowers WHERE id = %s;", (id,))
             row = cur.fetchone()
             if not row:
                 return None
-            return {"id": row[0], "name": row[1], "last_watered": row[2].strftime("%Y-%m-%d"), "water_level": row[3], "min_water_required": row[4], "current_water_level": row[5], "needs_watering": row[5] < row[4]}
+            return {"id": row[0], "name": row[1]}
     finally:
         cur.close()
         conn.close()
 
-def update_flower(id, last_watered, water_level):
+def select_customer(id=None):
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("UPDATE team10_flowers SET last_watered = %s, water_level = %s WHERE id = %s;", (last_watered, water_level, id))
-        conn.commit()
-        return True
-    except Exception as e:
-        conn.rollback()
-        print("Update error:", e)
-        return False
+        if id is None:
+            cur.execute("SELECT id, name, email FROM team10_customers ORDER BY id;")
+            rows = cur.fetchall()
+            return [{"id": r[0], "name": r[1], "email": r[2]} for r in rows]
+        else:
+            cur.execute("SELECT id, name, email FROM team10_customers WHERE id = %s;", (id,))
+            row = cur.fetchone()
+            if not row:
+                return None
+            return {"id": row[0], "name": row[1], "email": row[2]}
     finally:
         cur.close()
         conn.close()
 
-def delete_flower(id):
+def select_order(id=None):
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("DELETE FROM team10_flowers WHERE id = %s;", (id,))
-        conn.commit()
-        return True
-    except Exception as e:
-        conn.rollback()
-        print("Delete error:", e)
-        return False
+        if id is None:
+            cur.execute("SELECT id, customer_id, flower_id, order_date FROM team10_orders ORDER BY id;")
+            rows = cur.fetchall()
+            return [{"id": r[0], "customer_id": r[1], "flower_id": r[2], "order_date": r[3].strftime("%Y-%m-%d")} for r in rows]
+        else:
+            cur.execute("SELECT id, customer_id, flower_id, order_date FROM team10_orders WHERE id = %s;", (id,))
+            row = cur.fetchone()
+            if not row:
+                return None
+            return {"id": row[0], "customer_id": row[1], "flower_id": row[2], "order_date": row[3].strftime("%Y-%m-%d")}
     finally:
         cur.close()
         conn.close()
 
-def water_flower(id, amount):
+def select_order_with_details(id=None):
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        cur.execute("""
-            UPDATE team10_flowers AS t
-            SET water_level = v.current_water_level + %s,
-                    last_watered = CURRENT_DATE
-            FROM v_team10_flowers AS v
-            WHERE t.id = v.id
-            AND t.id = %s;
-        """, (amount, id))
-        conn.commit()
-        return True
-    except Exception as e:
-        conn.rollback()
-        print("Water error:", e)
-        return False
+        if id is None:
+            cur.execute("""
+                SELECT o.id, o.customer_id, c.name, c.email, o.flower_id, f.name, o.order_date
+                FROM team10_orders o
+                JOIN team10_customers c ON o.customer_id = c.id
+                JOIN team10_flowers f ON o.flower_id = f.id
+                ORDER BY o.id;
+            """)
+            rows = cur.fetchall()
+            return [{
+                "order_id": r[0],
+                "customer_id": r[1],
+                "customer_name": r[2],
+                "customer_email": r[3],
+                "flower_id": r[4],
+                "flower_name": r[5],
+                "order_date": r[6].strftime("%Y-%m-%d")
+            } for r in rows]
+        else:
+            cur.execute("""
+                SELECT o.id, o.customer_id, c.name, c.email, o.flower_id, f.name, o.order_date
+                FROM team10_orders o
+                JOIN team10_customers c ON o.customer_id = c.id
+                JOIN team10_flowers f ON o.flower_id = f.id
+                WHERE o.id = %s;
+            """, (id,))
+            row = cur.fetchone()
+            if not row:
+                return None
+            return {
+                "order_id": row[0],
+                "customer_id": row[1],
+                "customer_name": row[2],
+                "customer_email": row[3],
+                "flower_id": row[4],
+                "flower_name": row[5],
+                "order_date": row[6].strftime("%Y-%m-%d")
+            }
     finally:
         cur.close()
         conn.close()
@@ -114,50 +115,49 @@ def slow():
     try:
         cur.execute("""
             EXPLAIN ANALYZE
-            SELECT * FROM team10_flowers f
-                FULL JOIN team10_orders ON 1=1
-                FULL JOIN team10_customers ON 1=1
-            WHERE f.name LIKE '%%'
-            ORDER BY RANDOM()
-            ;
+            SELECT * FROM team10_customers c
+            CROSS JOIN team10_orders o
+            CROSS JOIN team10_flowers f;
         """)
         rows = cur.fetchall()
-        for r in rows:
-            print(r)
-        return rows
+        result = [{"plan": str(r[0]) if r else ""} for r in rows]
+        total_time = next((r["plan"] for r in result if "Execution Time" in r["plan"]), None)
+        return total_time
     finally:
         cur.close()
         conn.close()
 
 def fast():
-    print("fast ran")
-
     conn = _get_conn()
     cur = conn.cursor()
     try:
-        print("Making Indexes")
         cur.execute("""
-            CREATE INDEX idx_orders_customer_id ON team10_orders(customer_id);
+            CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON team10_orders(customer_id);
         """)
         cur.execute("""
-            CREATE INDEX idx_orders_flower_id ON team10_orders(flower_id);
+            CREATE INDEX IF NOT EXISTS idx_orders_flower_id ON team10_orders(flower_id);
         """)
         cur.execute("""
-            CREATE INDEX idx_flowers_name ON team10_flowers(name);
+            CREATE INDEX IF NOT EXISTS idx_flowers_name ON team10_flowers(name);
         """)
-        print("Finished making Indexes")
         cur.execute("""
             EXPLAIN ANALYZE
-            SELECT * FROM team10_flowers f
-                FULL JOIN team10_orders ON 1=1
-                FULL JOIN team10_customers ON 1=1
-            ;
+SELECT
+    c.*,
+    o.*,
+    f.*,
+    LOWER(COALESCE(c.name, '')) AS c_name_lcase,
+    LOWER(COALESCE(f.name, '')) AS f_name_lcase
+FROM team10_customers c
+CROSS JOIN team10_orders o
+CROSS JOIN team10_flowers f
+WHERE c.name IS NOT NULL
+ORDER BY c_name_lcase, f_name_lcase;
         """)
         rows = cur.fetchall()
-        for r in rows:
-            print(r)
-        return rows
+        result = [{"plan": str(r[0]) if r else ""} for r in rows]
+        total_time = next((r["plan"] for r in result if "Execution Time" in r["plan"]), None)
+        return total_time
     finally:
         cur.close()
         conn.close()
-    return

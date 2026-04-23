@@ -23,23 +23,9 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team10_flowers (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
-            last_watered DATE NOT NULL,
-            water_level INT NOT NULL,
-            min_water_required INT NOT NULL
+            name VARCHAR(100) NOT NULL
         );
     """)
-    cur.execute("""
-            CREATE OR REPLACE VIEW v_team10_flowers AS
-            SELECT
-            id,
-            name,
-            last_watered,
-            water_level,
-            min_water_required,
-            GREATEST(0, water_level - 5 * (CURRENT_DATE - last_watered)) AS current_water_level
-            FROM team10_flowers;
-            """)
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS team10_customers (
@@ -95,16 +81,18 @@ def seed_data():
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO team10_flowers (
-                name,
-                last_watered,
-                water_level,
-                min_water_required
-            )
+        INSERT INTO team10_flowers (name)
         VALUES
-            ('Rose',  '2024-02-10', 20, 5),
-            ('Tulip', '2024-02-08', 10, 7),
-            ('Lily',  '2024-02-05', 3, 5);
+            ('Rose'),
+            ('Tulip'),
+            ('Lily'),
+            ('Daisy'),
+            ('Sunflower'),
+            ('Orchid'),
+            ('Carnations'),
+            ('Chrysanthemum'),
+            ('Peony'),
+            ('Hydrangea');
         """)
     conn.commit()
     cur.close()
