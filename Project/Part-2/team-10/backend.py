@@ -39,7 +39,8 @@ FROM team10_orders o
 JOIN team10_customers c ON o.customer_id = c.id
 JOIN team10_flowers   f ON o.flower_id   = f.id
 GROUP BY c.id, c.name, f.id, f.name
-ORDER BY purchases DESC;"""
+ORDER BY purchases DESC
+LIMIT 100 OFFSET 0;"""
 
 # ── Read helpers (unchanged from your original) ──────────────────────────────
 
