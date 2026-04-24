@@ -10,30 +10,82 @@ PAGE = """
   <meta charset="utf-8">
   <title>Flower Inventory</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 24px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background: #f3f3f3; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; }
-    .card { border:1px solid #ddd; padding:12px; border-radius:8px; margin-bottom:16px; }
-    input { padding:6px; }
-    button { padding:6px 10px; cursor:pointer; }
-    .needs-water { background-color: #ffcccc; }
-    .is-ok { background-color: #ccffcc; }
+    :root {
+      --primary: #2e7d32;
+      --primary-hover: #1b5e20;
+      --danger: #d32f2f;
+      --danger-hover: #c62828;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #333333;
+    }
+    body { 
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+      margin: 0; padding: 32px; 
+      background-color: var(--bg); color: var(--text);
+    }
+    h2, h3 { color: #1a1a1a; margin-top: 0; }
+    .card { 
+      background: var(--card-bg); border: none; padding: 24px; 
+      border-radius: 12px; margin-bottom: 24px; 
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+    label { font-size: 0.9em; font-weight: 500; color: #555; display: block; margin-bottom: 6px; }
+    input { 
+      padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; 
+      font-size: 14px; transition: border-color 0.2s; 
+    }
+    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+    button { 
+      padding: 10px 16px; cursor: pointer; background-color: var(--primary); 
+      color: white; border: none; border-radius: 6px; font-weight: 600; 
+      font-size: 14px; transition: background-color 0.2s;
+    }
+    button:hover { background-color: var(--primary-hover); }
+    .btn-danger { background-color: var(--danger); }
+    .btn-danger:hover { background-color: var(--danger-hover); }
+    table { 
+      border-collapse: separate; border-spacing: 0; width: 100%; 
+      background: var(--card-bg); border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-top: 12px;
+    }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #edf2f7; }
+    th { background: #f8fafc; font-weight: 600; color: #4a5568; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.05em; }
+    .needs-water { background-color: #fff5f5; }
+    .is-ok { background-color: #f0fff4; }
+    a { color: var(--primary); text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <h2>Flower Inventory</h2>
 
   <div class="card">
+    <h3>Performance Testing (Part 2)</h3>
+    <div class="row">
+      <div style="flex:1; border: 1px solid #ddd; padding: 12px; border-radius: 8px;">
+        <button type="button" onclick="runQuery('/slow_query', 'slow')">Run Slow Query</button>
+        <p><strong>Execution Time:</strong> <span id="slow-time">N/A</span></p>
+        <pre id="slow-sql" style="background:#f3f3f3; padding:8px; font-size:12px; white-space: pre-wrap; word-wrap: break-word;">/* SQL will appear here */</pre>
+      </div>
+      <div style="flex:1; border: 1px solid #ddd; padding: 12px; border-radius: 8px;">
+        <button type="button" onclick="runQuery('/fast_query', 'fast')">Run Fast Query</button>
+        <p><strong>Execution Time:</strong> <span id="fast-time">N/A</span></p>
+        <pre id="fast-sql" style="background:#f3f3f3; padding:8px; font-size:12px; white-space: pre-wrap; word-wrap: break-word;">/* SQL will appear here */</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
     <h3>Add Flower</h3>
     <form method="POST" action="{{ url_for('frontend.add') }}">
       <div class="row">
-        <label>Name<br><input name="name" required></label>
-        <label>Color<br><input name="color" placeholder="Mixed"></label>
-        <label>Price<br><input name="price" type="number" step="0.01" min="0" required></label>
-        <label>Water Level<br><input name="water_level" type="number" value="20"></label>
-        <label>Min Water Required<br><input name="min_water_required" type="number" value="5"></label>
+        <div><label>Name</label><input name="name" required></div>
+        <div><label>Color</label><input name="color" placeholder="Mixed"></div>
+        <div><label>Price</label><input name="price" type="number" step="0.01" min="0" required></div>
+        <div><label>Water Level</label><input name="water_level" type="number" value="20"></div>
+        <div><label>Min Water Required</label><input name="min_water_required" type="number" value="5"></div>
         <div style="align-self:end;"><button type="submit">Add</button></div>
       </div>
     </form>
@@ -44,11 +96,11 @@ PAGE = """
     <h3>Edit Flower #{{ edit_item.id }}</h3>
     <form method="POST" action="{{ url_for('frontend.edit', id=edit_item.id) }}">
       <div class="row">
-        <label>Name<br><input name="name" value="{{ edit_item.name }}" required></label>
-        <label>Color<br><input name="color" value="{{ edit_item.color }}" required></label>
-        <label>Price<br><input name="price" type="number" step="0.01" min="0" value="{{ edit_item.price }}" required></label>
-        <label>Water Level<br><input name="water_level" type="number" value="{{ edit_item.water_level }}" required></label>
-        <label>Min Water Required<br><input name="min_water_required" type="number" value="{{ edit_item.min_water_required }}" required></label>
+        <div><label>Name</label><input name="name" value="{{ edit_item.name }}" required></div>
+        <div><label>Color</label><input name="color" value="{{ edit_item.color }}" required></div>
+        <div><label>Price</label><input name="price" type="number" step="0.01" min="0" value="{{ edit_item.price }}" required></div>
+        <div><label>Water Level</label><input name="water_level" type="number" value="{{ edit_item.water_level }}" required></div>
+        <div><label>Min Water Required</label><input name="min_water_required" type="number" value="{{ edit_item.min_water_required }}" required></div>
         <div style="align-self:end;">
           <button type="submit">Save</button>
           <a href="{{ url_for('frontend.index') }}" style="margin-left:10px;">Cancel</a>
@@ -82,13 +134,31 @@ PAGE = """
           </form>
           &nbsp;|&nbsp;
           <form method="POST" action="{{ url_for('frontend.delete', id=r.id) }}" style="display:inline;">
-            <button type="submit" onclick="return confirm('Delete this flower?');">Delete</button>
+            <button type="submit" class="btn-danger" onclick="return confirm('Delete this flower?');">Delete</button>
           </form>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <script>
+    function runQuery(endpoint, type) {
+      document.getElementById(type + '-time').innerText = "Running...";
+      document.getElementById(type + '-sql').innerText = "Executing query...";
+      
+      fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById(type + '-time').innerText = data.execution_time_seconds + " seconds";
+          document.getElementById(type + '-sql').innerText = data.query;
+        })
+        .catch(error => {
+          document.getElementById(type + '-time').innerText = "Error executing query";
+          console.error(error);
+        });
+    }
+  </script>
 </body>
 </html>
 """

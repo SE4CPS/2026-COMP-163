@@ -1,0 +1,130 @@
+import psycopg2
+
+DATABASE_URL = (
+    "postgresql://neondb_owner:npg_b64dzjqCkBiF@"
+    "ep-soft-king-anuhub9k-pooler.c-6.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
+)
+
+def _get_conn():
+    return psycopg2.connect(DATABASE_URL)
+
+def del_db():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("DROP TABLE IF EXISTS team10_flowers CASCADE;")
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def init_db():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team10_flowers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL
+        );
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team10_customers (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100),
+            email VARCHAR(100)
+        );
+        """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS team10_orders (
+            id SERIAL PRIMARY KEY,
+            customer_id INT REFERENCES team10_customers(id),
+            flower_id INT REFERENCES team10_flowers(id),
+            order_date DATE
+        );
+        """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def generate_customers():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO team10_customers (name, email)
+        SELECT
+            'Customer_' || g,
+            'customer_' || g || '@example.com'
+        FROM generate_series(1, 500) AS g;
+        """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def generate_orders():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO team10_orders (customer_id, flower_id, order_date)
+        SELECT
+            (random() * 499 + 1)::INT,
+            (random() * 2 + 1)::INT,  -- adjust based on team10_flowers
+            CURRENT_DATE - ((random() * 365)::INT)
+        FROM generate_series(1, 10000);
+        """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def seed_data():
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO team10_flowers (name)
+        VALUES
+            ('Rose'),
+            ('Tulip'),
+            ('Lily'),
+            ('Daisy'),
+            ('Sunflower'),
+            ('Orchid'),
+            ('Carnations'),
+            ('Chrysanthemum'),
+            ('Peony'),
+            ('Hydrangea');
+        """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+if __name__ == "__main__":
+
+	while True:
+		user = input("""
+                Choice:
+                d:  delete database
+                i:  init database
+                s:  seed database
+                gc: gen customers
+                go: gen orders
+			  """)
+		match user:
+			case "d":
+				print("Deleting db")
+				del_db()
+			case "s":
+				print("Seeding db")
+				seed_data()
+			case "i":
+				print("Initializing db")
+				init_db()
+			case "gc":
+				print("Generating customers")
+				generate_customers()
+			case "go":
+				print("Geeratingn orders")
+				generate_orders()
+			case _:
+				print("Invalid choice")
+				continue
