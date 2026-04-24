@@ -1,24 +1,11 @@
-"""
-Part 2 schema: team2_customers, team2_orders (team2_flowers from Part 1).
-Data caps: 500 customers, 10_000 orders. Enough flowers for FK integrity.
-
-Database (local Postgres, no Neon):
-  1. Install PostgreSQL for Windows from https://www.postgresql.org/download/windows/
-  2. Remember the password you set for the built-in "postgres" user.
-  3. Create an empty database, e.g. in "SQL Shell (psql)" as postgres:
-       CREATE DATABASE comp163_team2;
-  4. If your password is not "postgres", set before running the app:
-       set DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@127.0.0.1:5432/comp163_team2
-     (PowerShell: $env:DATABASE_URL = "postgresql://...")
-"""
-
 import os
-
 import psycopg2
 
-# Default: Postgres listening on your machine (adjust user/password/db name if needed).
+# UPDATED: Now points to your specific Neon instance by default
 _DEFAULT_DATABASE_URL = (
-    "postgresql://postgres:postgres@127.0.0.1:5432/comp163_team2"
+    "postgresql://neondb_owner:npg_XGW8VMqI4ohn@"
+    "ep-red-snow-am3ghme3-pooler.c-5.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require&channel_binding=require"
 )
 
 
