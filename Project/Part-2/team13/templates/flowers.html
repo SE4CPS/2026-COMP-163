@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flower Watering Status</title>
+</head>
+<body>
+    <h2>Flower Watering Status</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Last Watered</th>
+            <th>Water Level</th>
+            <th>Needs Watering</th>
+        </tr>
+        <tbody id="flower-data"></tbody>
+    </table>
+<hr>
+
+<h2>Query Performance Test</h2>
+
+<h3>Slow Query</h3>
+<button onclick="runSlowQuery()">Slow Query</button>
+<pre id="slow-query-text"></pre>
+<p id="slow-time"></p>
+
+<h3>Fast Query</h3>
+<button onclick="runFastQuery()">Fast Query</button>
+<pre id="fast-query-text"></pre>
+<p id="fast-time"></p>
+
+<script>
+    function runSlowQuery() {
+        document.getElementById("slow-time").innerText = "Running slow query...";
+        document.getElementById("slow-query-text").innerText = "";
+
+        fetch('/slow_query')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("slow-query-text").innerText = data.query;
+                document.getElementById("slow-time").innerText =
+                    "Execution time: " + data.execution_time + " seconds";
+            })
+            .catch(error => {
+                document.getElementById("slow-time").innerText =
+                    "Error running slow query.";
+                console.error(error);
+            });
+    }
+
+    function runFastQuery() {
+        document.getElementById("fast-time").innerText = "Running fast query...";
+        document.getElementById("fast-query-text").innerText = "";
+
+        fetch('/fast_query')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("fast-query-text").innerText = data.query;
+                document.getElementById("fast-time").innerText =
+                    "Execution time: " + data.execution_time + " seconds";
+            })
+            .catch(error => {
+                document.getElementById("fast-time").innerText =
+                    "Error running fast query.";
+                console.error(error);
+            });
+    }
+</script>
+
+    <script>
+        fetch('/flowers')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                let rows = "";
+                data.forEach(flower => {
+                    rows += `<tr>
+                        <td>${flower.name}</td>
+                        <td>${flower.last_watered}</td>
+                        <td>${flower.water_level} inches</td>
+                        <td>${flower.needs_watering ? "Yes" : "No"}</td>
+                    </tr>`;
+                });
+                document.getElementById("flower-data").innerHTML = rows;
+            })
+            .catch(error => {
+                console.error("Error loading flowers:", error);
+            });
+    </script>
+</body>
+</html>
